@@ -14,13 +14,7 @@ curl -i domain.com
 whois domain.com
 whatweb domain.com
 
-nmap -sV domain.com
-nmap -O domain.com
-nmap -sL domain.com
-nmap --script vuln domain.com
-nmap --script malware domain.com
-nmap -A domain.com
-nmap -D RND:10 domain.com
+sudo nmap -sS -sV -T4 domain.com
 
 gobuster dir -u domain.com -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt
 
