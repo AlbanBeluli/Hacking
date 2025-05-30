@@ -35,26 +35,33 @@ These commands are for educational purposes and authorized security testing only
 Commands for gathering information about a target domain or system.
 
 ```bash
-rustscan -a domain.com
-urlfinder -d domain.com -o domain.txt
-nikto -h domain.com
-amass enum -d domain.com
 curl -i domain.com
 whois domain.com  # Display website registration and owner information
 whatweb domain.com
 dig domain.com  # Query DNS related info such as A, CNAME, MX records
 nslookup domain.com  # Query DNS servers interactively, also used for RR
 host domain.com  # Display domain name for given IP or vice-versa, also performs DNS lookups
+
 sudo nmap -sS -sV -T4 domain.com  # Explore and audit hosts, IPs, ports, services
+rustscan -a domain.com
+urlfinder -d domain.com -o domain.txt
+
+nikto -h domain.com
+amass enum -d domain.com
 gobuster dir -u domain.com -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt
 gobuster dir -u domain.com -w /usr/share/seclists/sublist3r -d domain.com
+
 tshark -Y 'http.request.method == "GET"' -i eth0  # Analyze network traffic, capture packets
+
 wpscan --url domain.com --enumerate u
 wpscan --url domain.com --enumerate vp,vt --plugins-detection
+
 theHarvester -d domain.com -b all
+
 nc -lvnp 1234  # Listen on port for TCP/UDP connections
 sudo chmod +s /bin/bash
 bash -p
+sudo -l
 ```
 
 ---
@@ -112,7 +119,6 @@ Explore these resources for further learning and tool documentation:
 - [OWASP Testing Guide](https://owasp.org/www-project-web-security-testing-guide/)
 - [Kali Linux Tools Listing](https://www.kali.org/tools/)
 - [SecLists GitHub](https://github.com/danielmiessler/SecLists) for wordlists
-- [HackTricks](https://book.hacktricks.xyz/) for pentesting tutorials
 
 ---
 
