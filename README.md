@@ -20,6 +20,7 @@ Ensure the following tools are installed before running the commands:
 - **curl**, **whois**, **whatweb**, **netcat**: Common utilities
 - **dig**, **nslookup**, **host**, **ifconfig**, **ip**, **netstat**, **ss**, **mtr**, **iftop**, **ethtool**, **scp**, **sftp**, **rsync**, **bmon**, **vnstat**, **nmcli**: Additional networking tools
 - **ffuf**, **dnsenum**, **subfinder**, **sqlmap**: Additional recon tools
+- **assetfinder**, **dnsx**, **anubis**, **sherlock**, **spiderfoot**, **metagoofil**, **linkedin2username**, **h8mail**, **dnstwist**, **altdns**, **findomain**, **asnlookup**, **masscan**, **naabu**, **massdns**, **fierce**, **dnsvalidator**, **puredns**, **shuffledns**, **hosthunter**, **dirsearch**, **gospider**, **hakrawler**, **httprobe**, **httpx**, **paramspider**, **arjun**, **linkfinder**, **403bypasser**, **nuclei**, **wapiti**, **dalfox**, **xsstrike**, **jaeles**, **burpsuite**, **owasp zap**, **sslscan**, **waybackurls**, **gau**, **katana**, **gowitness**: Additional recon tools
 
 Install tools using your package manager (e.g., `apt`, `brew`) or follow official documentation. Wordlists like `dirbuster` and `seclists` are required for `gobuster`.
 
@@ -33,33 +34,89 @@ These commands are for educational purposes and authorized security testing only
 
 ## Recon Stuff
 
-Commands for gathering information about a target domain or system.
+Follow this workflow for effective reconnaissance. Start with **Passive Recon** to gather information without directly interacting with the target, then move to **Active Recon** for scanning and enumeration, and finally perform **Web Recon** for web-specific discovery and vulnerability scanning.
+
+### Passive Recon (Gather Information Safely)
+
+Use these tools first to collect OSINT, domains, subdomains, and other publicly available data without touching the target.
 
 ```bash
-curl -i domain.com
+theHarvester -d domain.com -b all  # Gather emails, subdomains, and hosts via OSINT
+sherlock username  # Hunt down social media accounts by username
+spiderfoot -t domain.com  # Automate OSINT across multiple sources
+metagoofil -d domain.com -t pdf,doc  # Search Google for public files on the target site
+linkedin2username -c "Company Name"  # Generate username lists from LinkedIn companies
+h8mail -t target@email.com  # OSINT for email breaches and password leaks
 whois domain.com  # Display website registration and owner information
-whatweb domain.com
-dig domain.com  # Query DNS related info such as A, CNAME, MX records
-nslookup domain.com  # Query DNS servers interactively, also used for RR
-host domain.com  # Display domain name for given IP or vice-versa, also performs DNS lookups
+assetfinder domain.com  # Find domains and subdomains related to the target
+subfinder -d domain.com  # Fast passive subdomain enumeration
+amass enum -d domain.com  # Network mapping and external asset discovery
+dnsx -d domain.com  # Run multi-purpose DNS queries for subdomains
+anubis -t domain.com  # Subdomain enumeration and info gathering
+dnstwist -d domain.com  # Uncover potentially malicious domains targeting your org
+altdns -i subdomains.txt -o permuted.txt  # Subdomain discovery through alterations
+findomain -t domain.com  # Directory fuzzing, port scanning, and more
+asnlookup -o "Organization Name"  # Search for organization ASNs and IP space
+```
+
+### Active Recon (Scan and Enumerate)
+
+Once you have a list of domains, subdomains, and IPs, use these tools to actively scan the target for services, ports, and host information. Be cautious as these may alert the target.
+
+```bash
 dnsenum domain.com  # Advanced DNS enumeration for subdomains and records
-subfinder -d domain.com  # Fast subdomain enumeration, complements Amass
-sudo nmap -sS -sV -T4 domain.com  # Explore and audit hosts, IPs, ports, services
-rustscan -a domain.com
-urlfinder -d domain.com -o domain.txt
-nikto -h domain.com
-amass enum -d domain.com
-gobuster dir -u domain.com -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt
-gobuster dir -u domain.com -w /usr/share/seclists/sublist3r -d domain.com
-ffuf -u http://domain.com/FUZZ -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt  # Fast web fuzzing for directories/parameters
-sqlmap -u "http://domain.com/index.php?id=1" --dbs  # Test for SQL injection (with permission)
+massdns -r resolvers.txt -t A subdomains.txt  # High-performance DNS resolution
+fierce --domain domain.com  # Locate non-contiguous IP space and hostnames
+dnsvalidator -tL resolvers.txt  # Validate DNS servers for accuracy
+puredns bruteforce subdomains.txt domain.com  # Subdomain bruteforcing with wildcard filtering
+shuffledns -d domain.com -w subdomains.txt -r resolvers.txt  # Mass DNS bruteforcing with wildcard handling
+hosthunter 192.168.1.0/24  # Discover hostnames for a range of IP addresses
+host domain.com  # Display domain name for given IP or vice-versa
+dig domain.com  # Query DNS info such as A, CNAME, MX records
+nslookup domain.com  # Query DNS servers interactively
+sudo nmap -sS -sV -T4 domain.com  # Explore hosts, IPs, ports, and services
+rustscan -a domain.com  # Fast port scanning
+masscan -p1-65535 domain.com  # Mass IP port scanning
+naabu -host domain.com  # Enumerate valid ports for hosts
+nc -zv domain.com 80  # Scan specific ports using netcat
 tshark -Y 'http.request.method == "GET"' -i eth0  # Analyze network traffic, capture packets
-wpscan --url domain.com --enumerate u
-wpscan --url domain.com --enumerate vp,vt --plugins-detection
-theHarvester -d domain.com -b all
-nc -lvnp 1234  # Listen on port for TCP/UDP connections
-sudo chmod +s /bin/bash
-bash -p
+```
+
+### Web Recon (Target Web Applications)
+
+Finally, focus on web applications to discover directories, parameters, endpoints, and vulnerabilities. These tools are specific to web targets.
+
+```bash
+whatweb domain.com  # Identify web technologies
+nikto -h domain.com  # Scan for web server vulnerabilities
+urlfinder -d domain.com -o domain.txt  # Find URLs on the target
+gobuster dir -u domain.com -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt  # Brute-force directories
+gobuster dns -d domain.com -w /usr/share/seclists/sublist3r  # Brute-force subdomains
+dirsearch -u domain.com  # Web path discovery
+ffuf -u http://domain.com/FUZZ -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt  # Fast web fuzzing
+gospider -s http://domain.com  # Fast web spidering for URLs and JS files
+hakrawler -url http://domain.com  # Crawl for URLs and JS file locations
+httprobe < subdomains.txt  # Probe for working HTTP/HTTPS servers
+httpx -l subdomains.txt  # Run multiple HTTP probes on a list of domains
+paramspider -d domain.com  # Mine parameters from web archives
+arjun -u http://domain.com  # HTTP parameter discovery
+linkfinder -i http://domain.com  # Discover endpoints in JavaScript files
+403bypasser -u http://domain.com  # Bypass access control restrictions
+waybackurls domain.com  # Fetch URLs from the Wayback Machine
+gau domain.com  # Fetch known URLs from AlienVault
+katana -u http://domain.com  # Next-gen crawling and spidering
+gowitness -f subdomains.txt  # Take screenshots of web pages
+sslscan domain.com  # SSL enumeration and vulnerability scanning
+wpscan --url domain.com --enumerate u  # Scan WordPress for users
+wpscan --url domain.com --enumerate vp,vt --plugins-detection  # Scan WordPress for plugins/themes
+sqlmap -u "http://domain.com/index.php?id=1" --dbs  # Test for SQL injection
+nuclei -u http://domain.com  # Vulnerability scanning with YAML templates
+wapiti -u http://domain.com  # Web vulnerability scanner
+dalfox url http://domain.com  # Scan for XSS flaws
+xsstrike -u http://domain.com  # Advanced XSS detection
+jaeles scan -u http://domain.com  # Custom web application scanning
+burpsuite  # Manual security assessment of web apps (GUI tool)
+owasp zap  # Widely used web vulnerability scanner (GUI tool)
 ```
 
 ---
