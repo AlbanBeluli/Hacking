@@ -1,6 +1,6 @@
 # Hacking Stuff
 
-This repository contains a collection of commands for reconnaissance, networking utilities, and playful hacking-related activities. Use these responsibly and only on systems you have explicit permission to test. This `README.md` serves as a quick reference for security enthusiasts and learners.
+This repository contains a collection of commands for reconnaissance, networking utilities, Linux hacking techniques, and playful activities. Use these responsibly and only on systems you have explicit permission to test. This `README.md` serves as a quick reference for security enthusiasts and learners.
 
 ---
 
@@ -18,7 +18,8 @@ Ensure the following tools are installed before running the commands:
 - **nmap**: Network exploration tool (`nmap`)
 - **theHarvester**: OSINT tool for emails and subdomains (`theHarvester`)
 - **curl**, **whois**, **whatweb**, **netcat**: Common utilities
-- **dig**, **nslookup**, **host**, **ifconfig**, **ip**, **netstat**, **ss**, **mtr**, **iftop**, **ethtool**, **scp**, **sftp**, **rsync**, **bmon**, **vnstat**, **ifplugstatus**, **nload**, **nmcli**: Additional networking tools
+- **dig**, **nslookup**, **host**, **ifconfig**, **ip**, **netstat**, **ss**, **mtr**, **iftop**, **ethtool**, **scp**, **sftp**, **rsync**, **bmon**, **vnstat**, **nmcli**: Additional networking tools
+- **ffuf**, **dnsenum**, **subfinder**, **sqlmap**: Additional recon tools
 
 Install tools using your package manager (e.g., `apt`, `brew`) or follow official documentation. Wordlists like `dirbuster` and `seclists` are required for `gobuster`.
 
@@ -41,27 +42,24 @@ whatweb domain.com
 dig domain.com  # Query DNS related info such as A, CNAME, MX records
 nslookup domain.com  # Query DNS servers interactively, also used for RR
 host domain.com  # Display domain name for given IP or vice-versa, also performs DNS lookups
-
+dnsenum domain.com  # Advanced DNS enumeration for subdomains and records
+subfinder -d domain.com  # Fast subdomain enumeration, complements Amass
 sudo nmap -sS -sV -T4 domain.com  # Explore and audit hosts, IPs, ports, services
 rustscan -a domain.com
 urlfinder -d domain.com -o domain.txt
-
 nikto -h domain.com
 amass enum -d domain.com
 gobuster dir -u domain.com -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt
 gobuster dir -u domain.com -w /usr/share/seclists/sublist3r -d domain.com
-
+ffuf -u http://domain.com/FUZZ -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt  # Fast web fuzzing for directories/parameters
+sqlmap -u "http://domain.com/index.php?id=1" --dbs  # Test for SQL injection (with permission)
 tshark -Y 'http.request.method == "GET"' -i eth0  # Analyze network traffic, capture packets
-
 wpscan --url domain.com --enumerate u
 wpscan --url domain.com --enumerate vp,vt --plugins-detection
-
 theHarvester -d domain.com -b all
-
 nc -lvnp 1234  # Listen on port for TCP/UDP connections
 sudo chmod +s /bin/bash
 bash -p
-sudo -l
 ```
 
 ---
@@ -90,9 +88,26 @@ sftp user@domain.com  # Secure file transfer protocol for file access and transf
 rsync -avz source/ user@domain.com:/path  # Sync files between hosts over SSH, efficient for large data
 bmon  # Monitor real-time bandwidth and debug network issues
 vnstat  # Monitor network traffic consumption on specified interfaces
-ifplugstatus  # Check if a network cable is connected to an interface
-nload  # Monitor network bandwidth usage in real-time
 nmcli device  # Manage network connections, control NetworkManager
+```
+
+---
+
+## Linux Commands for Hackers
+
+Essential Linux commands for hacking tasks, including file security, privilege escalation, and system enumeration.
+
+```bash
+shred -u file.txt  # Securely delete files by overwriting them
+find / -name "config*" 2>/dev/null  # Search for sensitive files (e.g., configs)
+id  # Display user and group information
+sudo -l  # List sudo privileges for the current user
+cat /etc/passwd  # View user accounts (check for misconfigurations)
+cat /etc/shadow  # View hashed passwords (if readable, requires root)
+find / -perm -4000 2>/dev/null  # Find SUID binaries for potential privilege escalation
+uname -a  # Display kernel and system info for exploit research
+ps aux  # List running processes to identify potential targets
+crontab -l  # List cron jobs to check for persistence opportunities
 ```
 
 ---
@@ -119,6 +134,7 @@ Explore these resources for further learning and tool documentation:
 - [OWASP Testing Guide](https://owasp.org/www-project-web-security-testing-guide/)
 - [Kali Linux Tools Listing](https://www.kali.org/tools/)
 - [SecLists GitHub](https://github.com/danielmiessler/SecLists) for wordlists
+- [HackTricks](https://book.hacktricks.xyz/) for pentesting tutorials
 
 ---
 
