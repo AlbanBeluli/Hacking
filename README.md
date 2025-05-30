@@ -4,9 +4,10 @@
                       # RECON STUFF
 ------------------------------------------------------- 
 
+------------------------------------------------------- 
 rustscan -a domain.com
-
-urlfinder -d domain.com
+------------------------------------------------------- 
+urlfinder -d domain.com -o domain.txt
 
 nikto -h domain.com
 
