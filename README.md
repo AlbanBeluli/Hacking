@@ -24,14 +24,14 @@ wpscan --url domain.com --enumerate u
 wpscan --url domain.com --enumerate vp,vt --plugins-detection
 nc -lvnp 1234
 sudo chmod +s /bin/bash
-bash
+bash -p
 
 ## Fun Stuff
 
-```bash
+
 ping -s 1300 -f domain.com
 hping3 -S -V --flood domain.com
 hping3 --traceroute -V -1 domain.com
 cat /dev/urandom
 alias ls="cat /dev/urandom"
-bash -p
+
