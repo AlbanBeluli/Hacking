@@ -191,7 +191,6 @@ Explore these resources for further learning and tool documentation:
 - [OWASP Testing Guide](https://owasp.org/www-project-web-security-testing-guide/)
 - [Kali Linux Tools Listing](https://www.kali.org/tools/)
 - [SecLists GitHub](https://github.com/danielmiessler/SecLists) for wordlists
-- [HackTricks](https://book.hacktricks.xyz/) for pentesting tutorials
 
 ---
 
