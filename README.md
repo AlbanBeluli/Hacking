@@ -6,6 +6,8 @@
 
 rustscan -a domain.com
 
+urlfinder -d domain.com
+
 nikto -h domain.com
 
 amass enum -d domain.com
@@ -19,6 +21,8 @@ sudo nmap -sS -sV -T4 domain.com
 gobuster dir -u domain.com -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt
 
 gobuster dir -u domain.com -w /usr/share/seclists/
+
+
 
 sublist3r -d domain.com
 
