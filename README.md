@@ -1,6 +1,6 @@
 # Hacking Stuff
 
-This repository contains a collection of commands for reconnaissance, networking utilities, Linux hacking techniques, and playful activities. Use these responsibly and only on systems you have explicit permission to test. This `README.md` serves as a quick reference for security enthusiasts and learners.
+This repository contains a collection of commands for reconnaissance, networking utilities, Linux hacking techniques, password cracking, and playful activities. Use these responsibly and only on systems you have explicit permission to test. This `README.md` serves as a quick reference for security enthusiasts and learners.
 
 ---
 
@@ -21,8 +21,10 @@ Ensure the following tools are installed before running the commands:
 - **dig**, **nslookup**, **host**, **ifconfig**, **ip**, **netstat**, **ss**, **mtr**, **iftop**, **ethtool**, **scp**, **sftp**, **rsync**, **bmon**, **vnstat**, **nmcli**: Additional networking tools
 - **ffuf**, **dnsenum**, **subfinder**, **sqlmap**: Additional recon tools
 - **assetfinder**, **dnsx**, **anubis**, **sherlock**, **spiderfoot**, **metagoofil**, **linkedin2username**, **h8mail**, **dnstwist**, **altdns**, **findomain**, **asnlookup**, **masscan**, **naabu**, **massdns**, **fierce**, **dnsvalidator**, **puredns**, **shuffledns**, **hosthunter**, **dirsearch**, **gospider**, **hakrawler**, **httprobe**, **httpx**, **paramspider**, **arjun**, **linkfinder**, **403bypasser**, **nuclei**, **wapiti**, **dalfox**, **xsstrike**, **jaeles**, **burpsuite**, **owasp zap**, **sslscan**, **waybackurls**, **gau**, **katana**, **gowitness**: Additional recon tools
+- **John the Ripper**: Password cracking tool (`john`)
+- **Hashcat**: Advanced password recovery tool (`hashcat`)
 
-Install tools using your package manager (e.g., `apt`, `brew`) or follow official documentation. Wordlists like `dirbuster` and `seclists` are required for `gobuster`.
+Install tools using your package manager (e.g., `apt`, `brew`) or follow official documentation. Wordlists like `dirbuster`, `seclists`, and `rockyou.txt` are required for tools like `gobuster`, `john`, and `hashcat`.
 
 ---
 
@@ -34,7 +36,7 @@ These commands are for educational purposes and authorized security testing only
 
 ## Recon Stuff
 
-Follow this workflow for effective reconnaissance. Start with **Passive Recon** to gather information without directly interacting with the target, then move to **Active Recon** for scanning and enumeration, and finally perform **Web Recon** for web-specific discovery and vulnerability scanning.
+Follow this workflow for effective reconnaissance. Start with **Passive Recon** to gather information without directly interacting with the target, then move to **Active Recon** for scanning and enumeration, followed by **Web Recon** for web-specific discovery and vulnerability scanning, and finally **Password Cracking** for recovering passwords from hashes.
 
 ### Passive Recon (Gather Information Safely)
 
@@ -87,9 +89,7 @@ tshark -Y 'http.request.method == "GET"' -i eth0  # Analyze network traffic, cap
 Finally, focus on web applications to discover directories, parameters, endpoints, and vulnerabilities. These tools are specific to web targets.
 
 ```bash
-
 python3 -m http.server
-
 whatweb domain.com  # Identify web technologies
 nikto -h domain.com  # Scan for web server vulnerabilities
 urlfinder -d domain.com -o domain.txt  # Find URLs on the target
@@ -120,6 +120,34 @@ xsstrike -u http://domain.com  # Advanced XSS detection
 jaeles scan -u http://domain.com  # Custom web application scanning
 burpsuite  # Manual security assessment of web apps (GUI tool)
 owasp zap  # Widely used web vulnerability scanner (GUI tool)
+```
+
+### Password Cracking (Recover Passwords from Hashes)
+
+Use these tools to crack password hashes obtained during reconnaissance or penetration testing. Ensure you have legal authorization to attempt password recovery.
+
+#### John the Ripper
+
+John the Ripper is a versatile password cracker supporting various hash types, ideal for CPU-based cracking and diverse formats. Install it via `apt install john` on Linux or download from [openwall.com](https://www.openwall.com/john/).
+
+```bash
+john --wordlist=/usr/share/wordlists/rockyou.txt hash.txt  # Crack hashes using rockyou wordlist
+john --format=raw-md5 --wordlist=/usr/share/wordlists/rockyou.txt hash.txt  # Crack MD5 hashes
+john --format=raw-sha256 --wordlist=/usr/share/wordlists/rockyou.txt hash.txt  # Crack SHA-256 hashes
+john --format=krb5tgs --wordlist=/usr/share/wordlists/rockyou.txt ticket.txt  # Crack Kerberos TGT hashes
+john --show hash.txt  # Display cracked passwords
+```
+
+#### Hashcat
+
+Hashcat is a GPU-accelerated password recovery tool, excelling at cracking complex hashes quickly. Install it via `apt install hashcat` or download from [hashcat.net](https://hashcat.net/hashcat/). Requires a compatible GPU.
+
+```bash
+hashcat -m 0 -a 0 -o cracked.txt hash.txt /usr/share/wordlists/rockyou.txt  # Crack MD5 hashes (dictionary attack)
+hashcat -m 1000 -a 0 -o cracked.txt hash.txt /usr/share/wordlists/rockyou.txt  # Crack NTLM hashes
+hashcat -m 3200 -a 0 -o cracked.txt hash.txt /usr/share/wordlists/rockyou.txt  # Crack bcrypt hashes
+hashcat -m 500 -a 3 -o cracked.txt hash.txt ?a?a?a?a  # Brute-force MD5 with 4-character passwords
+hashcat --show -o cracked.txt  # Display cracked passwords
 ```
 
 ---
@@ -189,11 +217,14 @@ curl wttr.in
 
 ## Resources
 
-Explore these resources for further learning and tool documentation:
+Explore these resources for further learning, tool documentation, and password cracking utilities:
 
 - [OWASP Testing Guide](https://owasp.org/www-project-web-security-testing-guide/)
 - [Kali Linux Tools Listing](https://www.kali.org/tools/)
 - [SecLists GitHub](https://github.com/danielmiessler/SecLists) for wordlists
+- [CrackStation](https://crackstation.net/) for online hash lookup and password cracking dictionaries
+- [CyberChef](https://gchq.github.io/CyberChef/) for encryption, encoding, compression, and data analysis
+- [Cryptii](https://cryptii.com/) for modular text transformation and encoding/decoding
 
 ---
 
