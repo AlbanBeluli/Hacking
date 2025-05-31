@@ -87,6 +87,9 @@ tshark -Y 'http.request.method == "GET"' -i eth0  # Analyze network traffic, cap
 Finally, focus on web applications to discover directories, parameters, endpoints, and vulnerabilities. These tools are specific to web targets.
 
 ```bash
+
+python3 -m http.server
+
 whatweb domain.com  # Identify web technologies
 nikto -h domain.com  # Scan for web server vulnerabilities
 urlfinder -d domain.com -o domain.txt  # Find URLs on the target
