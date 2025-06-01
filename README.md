@@ -77,7 +77,7 @@ host domain.com  # Display domain name for given IP or vice-versa
 dig domain.com  # Query DNS info such as A, CNAME, MX records
 nslookup domain.com  # Query DNS servers interactively
 sudo nmap -sS -sV -T4 domain.com  # Explore hosts, IPs, ports, and services
-rustscan -a domain.com  # Fast port scanning
+rustscan -a domain.com  -- -sV -O # Fast port scanning
 masscan -p1-65535 domain.com  # Mass IP port scanning
 naabu -host domain.com  # Enumerate valid ports for hosts
 nc -zv domain.com 80  # Scan specific ports using netcat
