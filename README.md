@@ -90,6 +90,10 @@ Finally, focus on web applications to discover directories, parameters, endpoint
 
 ```bash
 python3 -m http.server
+python3 -m venv /work/venv
+source /work/venv/bin/activate
+deactivate
+
 whatweb domain.com  # Identify web technologies
 nikto -h domain.com  # Scan for web server vulnerabilities
 urlfinder -d domain.com -o domain.txt  # Find URLs on the target
@@ -121,6 +125,17 @@ jaeles scan -u http://domain.com  # Custom web application scanning
 burpsuite  # Manual security assessment of web apps (GUI tool)
 owasp zap  # Widely used web vulnerability scanner (GUI tool)
 ```
+
+### Python
+
+```bash
+python3 -m http.server
+python3 -m venv /work/venv
+source /work/venv/bin/activate
+deactivate
+```
+
+---
 
 ### Password Cracking (Recover Passwords from Hashes)
 
