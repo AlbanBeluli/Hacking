@@ -205,6 +205,7 @@ crontab -l  # List cron jobs to check for persistence opportunities
 Miscellaneous commands for playful or experimental purposes.
 
 ```bash
+steghide
 ping -s 1300 -f domain.com
 hping3 -S -V --flood domain.com
 hping3 --traceroute -V -1 domain.com
