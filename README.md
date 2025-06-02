@@ -8,13 +8,15 @@ This repository contains a collection of commands for reconnaissance, networking
 
 Ensure the following tools are installed before running the commands:
 
+- **Snort**: Intrusion detection and prevention system (`snort`)
+- **Wireshark**: Network protocol analyzer (GUI and CLI via `tshark`)
 - **RustScan**: Fast port scanner (`rustscan`)
 - **Nikto**: Web server scanner (`nikto`)
 - **Amass**: Subdomain enumeration tool (`amass`)
 - **Gobuster**: Directory and subdomain brute-forcer (`gobuster`)
 - **WPScan**: WordPress vulnerability scanner (`wpscan`)
 - **hping3**: Packet crafting tool (`hping3`)
-- **tshark**: Network protocol analyzer (`tshark`)
+- **tshark**: Network protocol analyzer (part of Wireshark, `tshark`)
 - **nmap**: Network exploration tool (`nmap`)
 - **theHarvester**: OSINT tool for emails and subdomains (`theHarvester`)
 - **curl**, **whois**, **whatweb**, **netcat**: Common utilities
@@ -25,7 +27,7 @@ Ensure the following tools are installed before running the commands:
 - **Hashcat**: Advanced password recovery tool (`hashcat`)
 - **LinPEAS**: Linux privilege escalation scanner (`linpeas.sh`)
 
-Install tools using your package manager (e.g., `apt`, `brew`) or follow official documentation. Wordlists like `dirbuster`, `seclists`, and `rockyou.txt` are required for tools like `gobuster`, `john`, and `hashcat`.
+Install tools using your package manager (e.g., `apt`, `brew`) or follow official documentation. For **Snort**, install via `apt install snort` or download from [snort.org](https://www.snort.org/). For **Wireshark** and **TShark**, install via `apt install wireshark tshark` or download from [wireshark.org](https://www.wireshark.org/). Wordlists like `dirbuster`, `seclists`, and `rockyou.txt` are required for tools like `gobuster`, `john`, and `hashcat`.
 
 ---
 
@@ -82,8 +84,14 @@ rustscan -a domain.com  -- -sV -O # Fast port scanning
 masscan -p1-65535 domain.com  # Mass IP port scanning
 naabu -host domain.com  # Enumerate valid ports for hosts
 nc -zv domain.com 80  # Scan specific ports using netcat
-tshark -Y 'http.request.method == "GET"' -i eth0  # Analyze network traffic, capture packets
+tshark -i eth0 -f "tcp port 80" -w capture.pcap  # Capture HTTP traffic on port 80 to a file
+tshark -r capture.pcap -Y "http.request" -T fields -e http.request.method -e http.request.uri  # Extract HTTP methods and URIs from captured packets
+tshark -i eth0 -f "host domain.com" -Y "dns"  # Capture and display DNS queries for a specific host
+tshark -r capture.pcap -Y "http contains password"  # Search for "password" in HTTP traffic
+tshark -i eth0 -c 100 -T fields -e ip.src -e ip.dst -e tcp.port  # Capture and display source/destination IPs and TCP ports for 100 packets
 ```
+
+**Note**: `tshark` is the command-line interface of Wireshark, ideal for scripting and automation. Use `-w` to save captures and `-r` to read them. Ensure you have permission to capture traffic, as this may be noisy and detectable.
 
 ### Web Recon (Target Web Applications)
 
@@ -285,6 +293,52 @@ bmon  # Monitor real-time bandwidth and debug network issues
 vnstat  # Monitor network traffic consumption on specified interfaces
 nmcli device  # Manage network connections, control NetworkManager
 ```
+
+### Intrusion Detection with Snort
+
+**Snort** is an open-source intrusion detection and prevention system (IDS/IPS) for real-time traffic analysis and packet logging. It’s ideal for detecting malicious activity, such as exploits or reconnaissance scans, using predefined or custom rules. Install via `apt install snort` or download from [snort.org](https://www.snort.org/). Requires rule configuration (e.g., community rules or subscription-based rules).
+
+```bash
+sudo snort -i eth0 -c /etc/snort/snort.conf -A console  # Run Snort in IDS mode, log alerts to console
+sudo snort -i eth0 -c /etc/snort/snort.conf -l /var/log/snort -A full  # Log all packets and alerts to /var/log/snort
+sudo snort -r /var/log/snort/snort.log -c /etc/snort/snort.conf  # Analyze a saved packet capture for rule violations
+sudo snort -i eth0 -k none -Q  # Run Snort in inline IPS mode to drop malicious packets (requires setup)
+snort -T -c /etc/snort/snort.conf  # Test Snort configuration file for errors
+sudo snort -i eth0 -c /etc/snort/snort.conf -A cmg -N  # Monitor traffic with minimal logging for performance
+```
+
+**Note**: Snort requires a valid configuration file (`snort.conf`) and rules (e.g., from [snort.org](https://www.snort.org/downloads#rules)). Use `-A` to control alert modes (e.g., `console`, `full`, `cmg`). Ensure you have permission to monitor traffic, and tune rules to reduce false positives.
+
+### Packet Analysis with Wireshark
+
+**Wireshark** is a powerful GUI-based network protocol analyzer for dissecting packets and troubleshooting network issues. It’s widely used for deep packet inspection during security assessments. Install via `apt install wireshark` or download from [wireshark.org](https://www.wireshark.org/). For CLI-based analysis, see `tshark` under **Active Recon**.
+
+- **Launch Wireshark**: Start the GUI and select an interface (e.g., `eth0`) to capture traffic.
+  ```bash
+  wireshark &
+  ```
+
+- **Capture Traffic**: Use a capture filter to reduce noise (e.g., `host domain.com` or `tcp port 80`).
+  ```bash
+  wireshark -i eth0 -f "host domain.com" -k  # Start capturing traffic from domain.com immediately
+  ```
+
+- **Analyze Saved Capture**: Open a `.pcap` file for detailed inspection.
+  ```bash
+  wireshark -r capture.pcap  # Load a saved capture file
+  ```
+
+- **Apply Display Filters**: Use filters in the GUI to focus on specific traffic (e.g., `http.request` or `dns.qry.name contains domain.com`).
+  - Example: In Wireshark’s filter bar, enter `http contains password` to find HTTP packets with “password”.
+  - Example: `ip.src == 192.168.1.100 && tcp.port == 80` to filter traffic from a source IP on port 80.
+
+- **Export Objects**: Extract files (e.g., images, documents) from HTTP traffic.
+  - In Wireshark: `File > Export Objects > HTTP`, then save extracted files.
+
+- **Follow Streams**: Reconstruct TCP/UDP streams (e.g., HTTP conversations).
+  - Right-click a packet, select `Follow > TCP Stream` to view the full conversation.
+
+**Note**: Wireshark requires root privileges or proper permissions to capture traffic (e.g., add user to `wireshark` group). Use capture filters (`-f`) to limit data and display filters for analysis. Save captures to `.pcap` files for later review. For scripting or automation, use `tshark` (see **Active Recon**).
 
 ---
 
