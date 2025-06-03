@@ -10,7 +10,7 @@ Exam Step-by-Step Guide
 - **theHarvester**: Gathers emails, subdomains, hosts from public sources.
   ```bash
 theHarvester -d target.com -b all
-```
+``` 
 - **whois**: Shows who owns the domain, DNS servers, etc.
   ```bash
 whois target.com
