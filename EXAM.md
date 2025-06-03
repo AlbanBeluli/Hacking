@@ -8,11 +8,11 @@ Exam Step-by-Step Guide
 
 ### Passive Recon (No interaction with target)
 - **theHarvester**: Gathers emails, subdomains, hosts from public sources.
-  ```bash
+```bash
 theHarvester -d target.com -b all
-``` 
+```
 - **whois**: Shows who owns the domain, DNS servers, etc.
-  ```bash
+```bash
 whois target.com
 ```
 - **crt.sh**: Search for SSL certificates and subdomains.
