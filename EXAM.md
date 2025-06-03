@@ -1,4 +1,4 @@
-# TryHackMe PT1 Exam Step-by-Step Guide
+Exam Step-by-Step Guide
 
 ---
 
