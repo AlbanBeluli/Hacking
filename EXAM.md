@@ -110,9 +110,21 @@ ffuf -w /usr/share/seclists/Discovery/Web-Content/raft-large-directories.txt -u 
 ffuf -w /usr/share/seclists/Discovery/Web-Content/raft-large-files.txt -u http://target.com/FUZZ -o ffuf-large-files-output.txt
 
 gobuster dir -u http://target.com -w /usr/share/wordlists/dirb/common.txt -o gobuster-output.txt
+
+# Login Brute-Forcing (POST)
+ffuf -w /usr/share/wordlists/usernames.txt:USER -w /usr/share/wordlists/passwords.txt:PASS -u http://target.com/login -X POST -d 'username=USER&password=PASS' -H 'Content-Type: application/x-www-form-urlencoded' -o ffuf-login-output.txt
+
+# VHost Fuzzing
+ffuf -w /usr/share/wordlists/vhosts.txt -u http://target.com -H 'Host: FUZZ.target.com' -o ffuf-vhost-output.txt
+
+# Parameter Fuzzing
+ffuf -w /usr/share/wordlists/params.txt -u 'http://target.com/page?FUZZ=test' -o ffuf-param-output.txt
+
+# Header Fuzzing
+ffuf -w /usr/share/wordlists/headers.txt -u http://target.com -H 'FUZZ: test' -o ffuf-header-output.txt
 ```
-*What to look for:* 200/403/401 status codes, interesting directories/files (admin, login, backup, .git, etc.).  
-*What to do next:* Visit found URLs, try to access restricted areas, test for vulnerabilities.
+*What to look for:* 200/403/401 status codes, interesting directories/files, valid logins, vhosts, parameters, or headers.  
+*What to do next:* Visit found URLs, try to access restricted areas, test for vulnerabilities, or escalate access.
 
 - **Parameter Discovery**
 ```bash
@@ -137,6 +149,20 @@ xsstrike -u http://target.com | tee xsstrike-output.txt
 ```
 *What to look for:* Reflected input, alert popups, script execution.  
 *What to do next:* Try to steal cookies, escalate privileges, or bypass controls.
+
+- **Cookie Tampering**
+```bash
+curl http://domain.com/cookie-test
+curl https://domain.com/cookie-test
+
+curl -H "Cookie: logged_in=true; admin=false" http://domain.com/cookie-test
+curl -H "Cookie: logged_in=true; admin=false" https://domain.com/cookie-test
+
+curl -H "Cookie: logged_in=true; admin=true" http://domain.com/cookie-test
+curl -H "Cookie: logged_in=true; admin=true" https://domain.com/cookie-test
+```
+*What to look for:* Changes in access, privilege escalation, or bypassed restrictions.  
+*What to do next:* Try to access admin-only features, escalate privileges, or bypass authentication.
 
 - **Vulnerability Scanning**
 ```bash
