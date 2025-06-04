@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTTP Status Codes - Bug Bounty Focus</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #121212;
+            padding: 20px;
+            color: white;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .category {
+            margin-bottom: 30px;
+        }
+
+        .category-title {
+            color: #0078bb;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+        }
+
+        .status-box {
+            background: #1e1e1e;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .status-box:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+            background: #2a2a2a;
+        }
+
+        .bug-bounty-relevant {
+            box-shadow: 0 0 15px #0078bb;
+            border: 1px solid #0078bb;
+        }
+
+        .bug-bounty-relevant::after {
+            content: "🎯 Bug Bounty";
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 12px;
+            background: #0078bb;
+            padding: 3px 8px;
+            border-radius: 4px;
+            color: #000;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: relative;
+            background-color: #1e1e1e;
+            margin: 5% auto;
+            padding: 20px;
+            width: 90%;
+            max-width: 700px;
+            border-radius: 8px;
+            border: 1px solid #0078bb;
+            box-shadow: 0 0 20px #0078bb;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .close-button {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            font-size: 24px;
+            color: #0078bb;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+
+        .modal-title {
+            color: #0078bb;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .modal-section {
+            margin-bottom: 20px;
+        }
+
+        .modal-section h3 {
+            color: #0078bb;
+            margin-bottom: 10px;
+        }
+
+        .modal-section p, .modal-section li {
+            color: #fff;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .modal-section ul {
+            list-style-type: none;
+            padding-left: 20px;
+        }
+
+        .modal-section li::before {
+            content: "→";
+            color: #0078bb;
+            margin-right: 10px;
+        }
+
+        .code-example {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+            position: relative;
+        }
+
+        .copy-button {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            background: #0078bb;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            color: #000;
+            cursor: pointer;
+        }
+
+        .status-code {
+            font-size: 24px;
+            font-weight: bold;
+            color: #0078bb;
+            margin-bottom: 10px;
+        }
+
+        .status-name {
+            color: white;
+            font-size: 16px;
+            line-height: 1.4;
+        }
+
+        .search-container {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        #searchInput {
+            padding: 10px;
+            width: 100%;
+            max-width: 300px;
+            border: 1px solid #333;
+            border-radius: 4px;
+            font-size: 16px;
+            background-color: #1e1e1e;
+            color: white;
+        }
+
+        #searchInput::placeholder {
+            color: #666;
+        }
+
+        #searchInput:focus {
+            outline: none;
+            border-color: #0078bb;
+        }
+
+        .count-info {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #888;
+        }
+
+        .legend {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: #1e1e1e;
+            border-radius: 8px;
+            display: inline-block;
+            position: relative;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+    </style>
+</head>
+<body>
+    <h1>HTTP Status Codes</h1>
+    
+    <div class="search-container">
+        <input type="text" id="searchInput" placeholder="Search status codes...">
+    </div>
+    <div class="count-info" id="countInfo"></div>
+
+    <div id="statusContainer"></div>
+
+    <!-- Modal -->
+    <div id="infoModal" class="modal">
+        <div class="modal-content">
+            <button class="close-button">&times;</button>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+
+    <script>
+        const bugBountyInfo = {
+            401: {
+                title: "401 Unauthorized",
+                description: "Indicates authentication is required and has failed or not been provided.",
+                securityImplications: [
+                    "Potential for authentication bypass",
+                    "Broken authentication mechanisms",
+                    "Missing authentication checks"
+                ],
+                testingMethods: [
+                    "Try removing authentication tokens",
+                    "Use expired/invalid tokens",
+                    "Test for JWT vulnerabilities if JWT is used",
+                    "Check for authentication bypass in related endpoints"
+                ],
+                tools: [
+                    "JWT_Tool for testing JWT tokens",
+                    "Burp Suite's Authorization header tests",
+                    "Custom scripts for token manipulation"
+                ],
+                payloads: `
+# JWT Token Tests
+Authorization: Bearer null
+Authorization: Bearer undefined
+Authorization: none
+
+# Basic Auth Tests
+Authorization: Basic [base64_encoded_invalid_creds]
+Authorization: Basic YWRtaW46YWRtaW4=
+
+# Token Manipulation
+Authorization: Bearer [expired_token]
+Authorization: Bearer [token_with_modified_payload]`
+            },
+            403: {
+                title: "403 Forbidden",
+                description: "Access to the requested resource is forbidden. The server understood the request but refuses to authorize it.",
+                securityImplications: [
+                    "Vertical privilege escalation possibilities",
+                    "Horizontal privilege escalation possibilities",
+                    "Access control issues",
+                    "Directory traversal opportunities"
+                ],
+                testingMethods: [
+                    "Try different HTTP methods (GET, POST, PUT, etc.)",
+                    "Modify user roles/permissions in requests",
+                    "Test for path traversal",
+                    "Check for parameter pollution"
+                ],
+                tools: [
+                    "403Bypasser",
+                    "Burp Suite Autorize extension",
+                    "IDOR Tester"
+                ],
+                payloads: `
+# Path Traversal
+../../../etc/passwd
+..%2f..%2f..%2fetc%2fpasswd
+
+# HTTP Method Change
+X-HTTP-Method-Override: PUT
+X-Method-Override: DELETE
+
+# Header Manipulation
+X-Forwarded-For: 127.0.0.1
+X-Original-URL: /admin
+Base-Url: /admin
+X-Rewrite-URL: /admin`
+            },
+            500: {
+                title: "500 Internal Server Error",
+                description: "Generic server error that may reveal implementation details or system weaknesses.",
+                securityImplications: [
+                    "Information disclosure through error messages",
+                    "Stack traces revealing application structure",
+                    "Database query errors exposing schema",
+                    "Application logic flaws"
+                ],
+                testingMethods: [
+                    "Input unexpected data types",
+                    "Send malformed requests",
+                    "Test for SQL injection",
+                    "Try race conditions"
+                ],
+                tools: [
+                    "SQLMap for SQL injection testing",
+                    "Race condition testing scripts",
+                    "Custom fuzzing tools"
+                ],
+                payloads: `
+# SQL Injection Tests
+'
+' OR '1'='1
+'); DROP TABLE users;--
+
+# NoSQL Injection
+{"$gt": ""}
+{"$where": "sleep(5000)"}
+
+# XML Injection
+<!DOCTYPE test [<!ENTITY xxe SYSTEM "file:///etc/passwd">]>
+<test>&xxe;</test>`
+            },
+            // Add more status codes with detailed information...
+        };
+
+
+        const statusCodes = {
+            "1xx - Informational": [
+                { code: 100, name: "Continue" },
+                { code: 101, name: "Switching Protocols" },
+                { code: 102, name: "Processing" },
+                { code: 103, name: "Early Hints" }
+            ],
+            "2xx - Success": [
+                { code: 200, name: "OK" },
+                { code: 201, name: "Created" },
+                { code: 202, name: "Accepted" },
+                { code: 203, name: "Non-Authoritative Information", bugBounty: true },
+                { code: 204, name: "No Content" },
+                { code: 205, name: "Reset Content" },
+                { code: 206, name: "Partial Content", bugBounty: true },
+                { code: 207, name: "Multi-Status" },
+                { code: 208, name: "Already Reported" },
+                { code: 214, name: "Transformation Applied" },
+                { code: 226, name: "IM Used" }
+            ],
+            "3xx - Redirection": [
+                { code: 300, name: "Multiple Choices" },
+                { code: 301, name: "Moved Permanently", bugBounty: true },
+                { code: 302, name: "Found", bugBounty: true },
+                { code: 303, name: "See Other" },
+                { code: 304, name: "Not Modified" },
+                { code: 305, name: "Use Proxy" },
+                { code: 307, name: "Temporary Redirect", bugBounty: true },
+                { code: 308, name: "Permanent Redirect", bugBounty: true }
+            ],
+            "4xx - Client Error": [
+                { code: 400, name: "Bad Request", bugBounty: true },
+                { code: 401, name: "Unauthorized", bugBounty: true },
+                { code: 402, name: "Payment Required", bugBounty: true },
+                { code: 403, name: "Forbidden", bugBounty: true },
+                { code: 404, name: "Not Found", bugBounty: true },
+                { code: 405, name: "Method Not Allowed", bugBounty: true },
+                { code: 406, name: "Not Acceptable" },
+                { code: 407, name: "Proxy Authentication Required", bugBounty: true },
+                { code: 408, name: "Request Timeout" },
+                { code: 409, name: "Conflict" },
+                { code: 410, name: "Gone" },
+                { code: 411, name: "Length Required" },
+                { code: 412, name: "Precondition Failed" },
+                { code: 413, name: "Payload Too Large", bugBounty: true },
+                { code: 414, name: "Request-URI Too Long", bugBounty: true },
+                { code: 415, name: "Unsupported Media Type" },
+                { code: 416, name: "Request Range Not Satisfiable" },
+                { code: 417, name: "Expectation Failed" },
+                { code: 418, name: "I'm a teapot" },
+                { code: 420, name: "Enhance Your Calm" },
+                { code: 421, name: "Misdirected Request", bugBounty: true },
+                { code: 422, name: "Unprocessable Entity" },
+                { code: 423, name: "Locked" },
+                { code: 424, name: "Failed Dependency" },
+                { code: 425, name: "Too Early" },
+                { code: 426, name: "Upgrade Required" },
+                { code: 428, name: "Precondition Required" },
+                { code: 429, name: "Too Many Requests", bugBounty: true },
+                { code: 431, name: "Request Header Fields Too Large", bugBounty: true },
+                { code: 444, name: "No Response" },
+                { code: 450, name: "Blocked by Windows Parental Controls" },
+                { code: 451, name: "Unavailable For Legal Reasons" },
+                { code: 495, name: "SSL Certificate Error", bugBounty: true },
+                { code: 496, name: "SSL Certificate Required", bugBounty: true },
+                { code: 497, name: "HTTP Request Sent to HTTPS Port", bugBounty: true },
+                { code: 498, name: "Token expired/invalid", bugBounty: true },
+                { code: 499, name: "Client Closed Request" }
+            ],
+            "5xx - Server Error": [
+                { code: 500, name: "Internal Server Error", bugBounty: true },
+                { code: 501, name: "Not Implemented", bugBounty: true },
+                { code: 502, name: "Bad Gateway", bugBounty: true },
+                { code: 503, name: "Service Unavailable", bugBounty: true },
+                { code: 504, name: "Gateway Timeout", bugBounty: true },
+                { code: 506, name: "Variant Also Negotiates" },
+                { code: 507, name: "Insufficient Storage" },
+                { code: 508, name: "Loop Detected" },
+                { code: 509, name: "Bandwidth Limit Exceeded" },
+                { code: 510, name: "Not Extended" },
+                { code: 511, name: "Network Authentication Required", bugBounty: true },
+                { code: 521, name: "Web Server Is Down" },
+                { code: 522, name: "Connection Timed Out" },
+                { code: 523, name: "Origin Is Unreachable" },
+                { code: 525, name: "SSL Handshake Failed", bugBounty: true },
+                { code: 530, name: "Site Frozen" },
+                { code: 599, name: "Network Connect Timeout Error" }
+            ]
+        };
+
+        function showModal(statusCode) {
+            const modal = document.getElementById('infoModal');
+            const modalContent = document.getElementById('modalContent');
+            const info = bugBountyInfo[statusCode];
+
+            if (!info) {
+                return; // Don't show modal if no detailed info available
+            }
+
+            modalContent.innerHTML = `
+                <h2 class="modal-title">${info.title}</h2>
+                
+                <div class="modal-section">
+                    <h3>Description</h3>
+                    <p>${info.description}</p>
+                </div>
+
+                <div class="modal-section">
+                    <h3>Security Implications</h3>
+                    <ul>
+                        ${info.securityImplications.map(imp => `<li>${imp}</li>`).join('')}
+                    </ul>
+                </div>
+
+                <div class="modal-section">
+                    <h3>Testing Methods</h3>
+                    <ul>
+                        ${info.testingMethods.map(method => `<li>${method}</li>`).join('')}
+                    </ul>
+                </div>
+
+                <div class="modal-section">
+                    <h3>Useful Tools</h3>
+                    <ul>
+                        ${info.tools.map(tool => `<li>${tool}</li>`).join('')}
+                    </ul>
+                </div>
+
+                <div class="modal-section">
+                    <h3>Example Payloads</h3>
+                    <div class="code-example">
+                        <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+                        <pre>${info.payloads}</pre>
+                    </div>
+                </div>
+            `;
+
+            modal.style.display = 'block';
+        }
+
+        function copyToClipboard(button) {
+            const codeBlock = button.nextElementSibling;
+            const text = codeBlock.textContent;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                button.textContent = 'Copied!';
+                setTimeout(() => {
+                    button.textContent = 'Copy';
+                }, 2000);
+            });
+        }
+
+        // Close modal when clicking the close button or outside the modal
+        document.querySelector('.close-button').onclick = function() {
+            document.getElementById('infoModal').style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('infoModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        function renderStatusCodes(filter = '') {
+            const container = document.getElementById('statusContainer');
+            const countInfo = document.getElementById('countInfo');
+            container.innerHTML = '';
+            
+            let totalShown = 0;
+            let totalCodes = 0;
+
+            for (const [category, codes] of Object.entries(statusCodes)) {
+                totalCodes += codes.length;
+                const filteredCodes = codes.filter(status => 
+                    status.code.toString().includes(filter) ||
+                    status.name.toLowerCase().includes(filter.toLowerCase())
+                );
+
+                totalShown += filteredCodes.length;
+                if (filteredCodes.length === 0) continue;
+
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'category';
+                
+                const categoryTitle = document.createElement('h2');
+                categoryTitle.className = 'category-title';
+                categoryTitle.textContent = category;
+                
+                const gridDiv = document.createElement('div');
+                gridDiv.className = 'status-grid';
+
+                filteredCodes.forEach(status => {
+                    const statusBox = document.createElement('div');
+                    statusBox.className = `status-box ${status.bugBounty ? 'bug-bounty-relevant' : ''}`;
+                    statusBox.innerHTML = `
+                        <div class="status-code">${status.code}</div>
+                        <div class="status-name">${status.name}</div>
+                    `;
+                    statusBox.onclick = () => showModal(status.code);
+                    gridDiv.appendChild(statusBox);
+                });
+
+                categoryDiv.appendChild(categoryTitle);
+                categoryDiv.appendChild(gridDiv);
+                container.appendChild(categoryDiv);
+            }
+
+            countInfo.textContent = filter ? 
+                `Showing ${totalShown} of ${totalCodes} status codes` : 
+                `Total: ${totalCodes} status codes`;
+        }
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            renderStatusCodes(e.target.value);
+        });
+
+        // Initial render
+        renderStatusCodes();
+    </script>
+</body>
+</html>
