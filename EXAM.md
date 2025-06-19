@@ -326,6 +326,9 @@ nmap -p 21 --script ftp-anon,ftp-brute target -oN ftp_nmap.txt
 
 # SSH
 nmap -p 22 --script ssh-auth-methods,ssh-brute target -oN ssh_nmap.txt
+
+# Subdomain
+subfinder -d domain.com -v | httpx | tee subfinder.txt
 ```
 
 ### Exploitation
