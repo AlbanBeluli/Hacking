@@ -59,6 +59,7 @@ dig axfr @ns1.domain.com domain.com
 dnsenum domain.com
 massdns -r resolvers.txt -t A domain.com
 fierce --domain domain.com
+subfinder -d domain.com -v
 ```
 
 ### Example: Banner Grabbing
