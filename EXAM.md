@@ -333,6 +333,10 @@ subfinder -d domain.com -v | httpx | tee subfinder.txt
 nuclei -u https://example.com
 # Vulnerability Scanning with nikto
 nikto -h http://domain.com
+
+#One go
+subfinder -d domain.com -v | httpx -silent | naabu -silent | katana -silent | cvemap | tee results.txt
+
 # SSL Scanning with sslscan
 sslscan domain.com
 # Directory Brute-Forcing with dirsearch
