@@ -329,6 +329,18 @@ nmap -p 22 --script ssh-auth-methods,ssh-brute target -oN ssh_nmap.txt
 
 # Subdomain
 subfinder -d domain.com -v | httpx | tee subfinder.txt
+# Vulnerability Scanning with nuclei
+nuclei -u https://example.com
+# Vulnerability Scanning with nikto
+nikto -h http://domain.com
+# SSL Scanning with sslscan
+sslscan domain.com
+# Directory Brute-Forcing with dirsearch
+dirsearch -u http://domain.com -w /usr/share/wordlists/dirb/common.txt
+# Directory Brute-Forcing with ffuf
+ffuf -w /usr/share/wordlists/dirb/common.txt -u http://domain.com/FUZZ
+# Directory Brute-Forcing with gobuster
+gobuster dir -u http://domain.com -w /usr/share/wordlists/dirb/common.txt
 ```
 
 ### Exploitation
