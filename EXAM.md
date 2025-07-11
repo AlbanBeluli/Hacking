@@ -345,6 +345,7 @@ dirsearch -u http://domain.com -w /usr/share/wordlists/dirb/common.txt
 ffuf -w /usr/share/wordlists/dirb/common.txt -u http://domain.com/FUZZ
 # Directory Brute-Forcing with gobuster
 gobuster dir -u http://domain.com -w /usr/share/wordlists/dirb/common.txt
+gobuster dir -u https://domain.com -w /Users/akira/SecLists/Discovery/Web-Content/common.txt -k -t 10 --timeout 5s
 ```
 
 ### Exploitation
